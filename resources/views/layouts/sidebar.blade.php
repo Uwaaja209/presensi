@@ -2,12 +2,12 @@
 
  <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
      <div class="app-brand demo">
-         <a href="#" class="app-brand-link">
+         <a href="index.html" class="app-brand-link">
              <span class="app-brand-logo demo">
                  <i class="ti ti-fingerprint" style="font-size:32px !important"></i>
-                 {{-- <img src="{{ asset('assets/img/logo/klinikputihA.png') }}" alt="" width="64"> --}}
+                 {{-- <img src="{{ asset('assets/img/logo/hibah.png') }}" alt="" width="64"> --}}
              </span>
-             <span class="app-brand-text demo menu-text fw-bold"><i><b>DR-</b></i>Presnsi</span>
+             <span class="app-brand-text demo menu-text fw-bold"><i><b>e</b></i>PresensiV2</span>
          </a>
 
          <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
@@ -77,6 +77,69 @@
                              </a>
                          </li>
                      @endcan
+
+
+                 </ul>
+             </li>
+         @endif
+         @if (auth()->user()->hasAnyPermission([
+                     'gajipokok.index',
+                     'jenistunjangan.index',
+                     'tunjangan.index',
+                     'bpjskesehatan.index',
+                     'bpjstenagakerja.index',
+                     'penyesuaiangaji.index',
+                 ]))
+             <li
+                 class="menu-item {{ request()->is(['gajipokok', 'jenistunjangan', 'tunjangan', 'bpjskesehatan', 'bpjstenagakerja', 'penyesuaiangaji', 'penyesuaiangaji/*']) ? 'open' : '' }}">
+                 <a href="javascript:void(0);" class="menu-link menu-toggle">
+                     <i class="menu-icon tf-icons ti ti-moneybag"></i>
+                     <div>Payroll</div>
+
+                 </a>
+                 <ul class="menu-sub">
+                     @can('jenistunjangan.index')
+                         <li class="menu-item {{ request()->is(['jenistunjangan', 'jenistunjangan/*']) ? 'active' : '' }}">
+                             <a href="{{ route('jenistunjangan.index') }}" class="menu-link">
+                                 <div>Jenis Tunjangan</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('gajipokok.index')
+                         <li class="menu-item {{ request()->is(['gajipokok', 'gajipokok/*']) ? 'active' : '' }}">
+                             <a href="{{ route('gajipokok.index') }}" class="menu-link">
+                                 <div>Gaji Pokok</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('tunjangan.index')
+                         <li class="menu-item {{ request()->is(['tunjangan', 'tunjangan/*']) ? 'active' : '' }}">
+                             <a href="{{ route('tunjangan.index') }}" class="menu-link">
+                                 <div>Tunjangan</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('bpjskesehatan.index')
+                         <li class="menu-item {{ request()->is(['bpjskesehatan', 'bpjskesehatan/*']) ? 'active' : '' }}">
+                             <a href="{{ route('bpjskesehatan.index') }}" class="menu-link">
+                                 <div>BPJS Kesehatan</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('bpjstenagakerja.index')
+                         <li class="menu-item {{ request()->is(['bpjstenagakerja', 'bpjstenagakerja/*']) ? 'active' : '' }}">
+                             <a href="{{ route('bpjstenagakerja.index') }}" class="menu-link">
+                                 <div>BPJS Tenaga Kerja</div>
+                             </a>
+                         </li>
+                     @endcan
+                     @can('penyesuaiangaji.index')
+                         <li class="menu-item {{ request()->is(['penyesuaiangaji', 'penyesuaiangaji/*']) ? 'active' : '' }}">
+                             <a href="{{ route('penyesuaiangaji.index') }}" class="menu-link">
+                                 <div>Penyesuaian Gaji</div>
+                             </a>
+                         </li>
+                     @endcan
                  </ul>
              </li>
          @endif
@@ -142,7 +205,7 @@
                  <ul class="menu-sub">
                      <li class="menu-item {{ request()->is(['laporan/presensi']) ? 'active' : '' }}">
                          <a href="{{ route('laporan.presensi') }}" class="menu-link">
-                             <div>Presensi</div>
+                             <div>Presensi & Gaji</div>
                          </a>
                      </li>
                  </ul>
@@ -179,7 +242,7 @@
                  </ul>
              </li>
          @endif
-         @if (auth()->user()->hasAnyPermission(['wagateway.index']))
+         @if (auth()->user()->hasRole(['super admin']))
              <li class="menu-item {{ request()->is(['wagateway', 'wagateway/*']) ? 'active' : '' }}">
                  <a href="{{ route('wagateway.index') }}" class="menu-link">
                      <i class="menu-icon tf-icons ti ti-brand-whatsapp"></i>

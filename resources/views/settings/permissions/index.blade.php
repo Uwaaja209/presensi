@@ -6,7 +6,7 @@
     <span>Permissions</span>
 @endsection
 <div class="row">
-    <div class="col-lg-12 col-sm-12 col-xs-12">
+    <div class="col-lg-6 col-sm-12 col-xs-12">
         <div class="card">
             <div class="card-header">
                 <a href="#" class="btn btn-primary" id="btncreatePermission"><i class="fa fa-plus me-2"></i> Tambah

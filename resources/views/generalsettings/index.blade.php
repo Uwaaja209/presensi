@@ -155,7 +155,7 @@
     }
 </style>
 <div class="row">
-    <div class="col-lg-12 col-sm-12 col-xs-12">
+    <div class="col-lg-4 col-sm-12 col-xs-12">
         <div class="card">
             <div class="card-body">
                 <form action="{{ route('generalsetting.update', Crypt::encrypt($setting->id)) }}" method="POST" enctype="multipart/form-data">
@@ -199,11 +199,21 @@
                             <span class="switch-right">No</span>
                         </label>
                     </div>
+                    <label for="" style="font-weight: 600" class="form-label">Batasi Absen</label>
+                    <div class="checkbox-wrapper-55">
+                        <label class="rocker rocker-small">
+                            <input type="checkbox" name="batasi_absen" @checked($setting->batasi_absen ?? false)>
+                            <span class="switch-left">Yes</span>
+                            <span class="switch-right">No</span>
+                        </label>
+                    </div>
+                    <x-input-with-icon-label label="Batas Jam Absen (Dalam Jam)" name="batas_jam_absen" icon="ti ti-clock" :value="$setting->batas_jam_absen ?? ''" />
                     <x-input-with-icon-label label="Cloud Id" name="cloud_id" icon="ti ti-cloud" :value="$setting->cloud_id ?? ''" />
                     <x-input-with-icon-label label="API Key" name="api_key" icon="ti ti-key" :value="$setting->api_key ?? ''" />
                     <x-input-with-icon-label label="Domain Email (contoh: adamadifa.site)" name="domain_email" icon="ti ti-mail" :value="$setting->domain_email ?? ''" />
                     <x-input-with-icon-label label="Domain WA Gateway (contoh: https://wa.adamadifa.site)" name="domain_wa_gateway"
                         icon="ti ti-message" :value="$setting->domain_wa_gateway ?? ''" />
+                    <x-input-with-icon-label label="WA API Key" name="wa_api_key" icon="ti ti-brand-whatsapp" :value="$setting->wa_api_key ?? ''" />
                     <div class="form-group mb-3">
                         <label for="logo" style="font-weight: 600" class="form-label">Logo Perusahaan</label>
                         <input type="file" class="form-control" name="logo" id="logo">
@@ -215,6 +225,8 @@
                             @endif
                         </div>
                     </div>
+
+
                     <button class="btn btn-primary w-100" id="btnSimpan">
                         <i class="ti ti-refresh me-1"></i> Update
                     </button>

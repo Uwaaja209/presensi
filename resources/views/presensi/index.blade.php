@@ -18,8 +18,8 @@
                                 datepicker="flatpickr-date" />
                             <div class="row">
                                 <div class="col-lg-12 col-sm-12 col-md-12">
-                                    <x-select label="Cabang" name="kode_cabang_search" :data="$cabang" key="kode_cabang" textShow="nama_cabang"
-                                        selected="{{ Request('kode_cabang_search') }}" upperCase="true" select2="select2Kodecabangsearch" />
+                                    <x-select label="Cabang" name="kode_cabang" :data="$cabang" key="kode_cabang" textShow="nama_cabang"
+                                        selected="{{ Request('kode_cabang') }}" upperCase="true" select2="select2Kodecabangsearch" />
                                 </div>
                             </div>
                             <div class="row">
@@ -45,7 +45,7 @@
                                         <th>NIK</th>
                                         <th>Nama Karyawan</th>
                                         <th>Dept</th>
-                                        
+                                        <th>Cbg</th>
                                         <th>Jam Kerja</th>
                                         <th class="text-center">Jam Masuk</th>
                                         <th class="text-center">Jam Pulang</th>
@@ -64,6 +64,7 @@
                                             $tanggal_presensi = !empty(Request('tanggal')) ? Request('tanggal') : date('Y-m-d');
                                             $jam_masuk = $tanggal_presensi . ' ' . $d->jam_masuk;
                                             $terlambat = hitungjamterlambat($d->jam_in, $jam_masuk);
+                                            $potongan_tidak_hadir = $d->status == 'a' ? $d->total_jam : 0;
                                             $pulangcepat = hitungpulangcepat(
                                                 $tanggal_presensi,
                                                 $d->jam_out,
@@ -96,6 +97,7 @@
                                             <td>{{ $d->nik }}</td>
                                             <td>{{ $d->nama_karyawan }}</td>
                                             <td>{{ $d->kode_dept }}</td>
+                                            <td>{{ $d->kode_cabang }}</td>
                                             <td>
                                                 @if ($d->kode_jam_kerja != null)
                                                     {{ $d->nama_jam_kerja }} {{ date('H:i', strtotime($d->jam_masuk)) }} -
@@ -189,7 +191,7 @@
                                             </td>
                                             <td class="text-center">
                                                 @php
-                                                    $total_potongan_jam = $pulangcepat + $potongan_jam_terlambat;
+                                                    $total_potongan_jam = $pulangcepat + $potongan_jam_terlambat + $potongan_tidak_hadir;
                                                 @endphp
                                                 @if ($total_potongan_jam > 0)
                                                     <span class="badge bg-danger">
@@ -224,6 +226,7 @@
         </div>
     </div>
 </div>
+<x-modal-form id="modal" size="modal-lg" show="loadmodal" title="" />
 @endsection
 @push('myscript')
 <script>

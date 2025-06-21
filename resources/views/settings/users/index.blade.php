@@ -6,7 +6,7 @@
     <span>Users</span>
 @endsection
 <div class="row">
-    <div class="col-lg-12 col-sm-12 col-xs-12">
+    <div class="col-lg-8 col-sm-12 col-xs-12">
         <div class="card">
             <div class="card-header">
                 <a href="#" class="btn btn-primary" id="btncreateUser"><i class="fa fa-plus me-2"></i> Tambah
@@ -98,9 +98,8 @@
                             </table>
                         </div>
                         <div style="float: right;">
-                            {{ $users->links() }}
+                            {{-- {{ $users->links() }} --}}
                         </div>
-                        
                     </div>
                 </div>
             </div>

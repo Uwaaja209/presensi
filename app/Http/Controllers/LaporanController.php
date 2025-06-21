@@ -2,13 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bpjskesehatan;
+use App\Models\Bpjstenagakerja;
 use App\Models\Cabang;
 use App\Models\Denda;
 use App\Models\Departemen;
+use App\Models\Detailpenyesuaiangaji;
+use App\Models\Detailtunjangan;
+use App\Models\Gajipokok;
+use App\Models\Jenistunjangan;
 use App\Models\Karyawan;
 use App\Models\Pengaturanumum;
 use App\Models\Presensi;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
@@ -62,6 +69,8 @@ class LaporanController extends Controller
         }
 
 
+
+
         $presensi_detail  = Presensi::join('presensi_jamkerja', 'presensi.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
             ->leftJoin('presensi_izinabsen_approve', 'presensi.id', '=', 'presensi_izinabsen_approve.id_presensi')
             ->leftJoin('presensi_izinabsen', 'presensi_izinabsen_approve.kode_izin', '=', 'presensi_izinabsen.kode_izin')
@@ -78,17 +87,86 @@ class LaporanController extends Controller
                 'jam_awal_istirahat',
                 'jam_akhir_istirahat',
                 'lintashari',
+                'total_jam',
                 'presensi_izinabsen.keterangan as keterangan_izin_absen',
                 'presensi_izinsakit.keterangan as keterangan_izin_sakit',
                 'presensi_izincuti.keterangan as keterangan_izin_cuti'
             )
             ->whereBetween('presensi.tanggal', [$periode_dari, $periode_sampai]);
 
+
+        $gaji_pokok = Gajipokok::select(
+            'nik',
+            'jumlah'
+        )
+            ->whereIn('kode_gaji', function ($query) use ($periode_sampai) {
+                $query->select(DB::raw('MAX(kode_gaji)'))
+                    ->from('karyawan_gaji_pokok')
+                    ->where('tanggal_berlaku', '<=', $periode_sampai)
+                    ->groupBy('nik');
+            });
+
+
+
+        $bpjs_kesehatan = Bpjskesehatan::select(
+            'nik',
+            'jumlah'
+        )
+            ->whereIn('kode_bpjs_kesehatan', function ($query) use ($periode_sampai) {
+                $query->select(DB::raw('MAX(kode_bpjs_kesehatan)'))
+                    ->from('karyawan_bpjskesehatan')
+                    ->where('tanggal_berlaku', '<=', $periode_sampai)
+                    ->groupBy('nik');
+            });
+
+
+        $bpjs_tenagakerja = Bpjstenagakerja::select(
+            'nik',
+            'jumlah'
+        )
+            ->whereIn('kode_bpjs_tk', function ($query) use ($periode_sampai) {
+                $query->select(DB::raw('MAX(kode_bpjs_tk)'))
+                    ->from('karyawan_bpjstenagakerja')
+                    ->where('tanggal_berlaku', '<=', $periode_sampai)
+                    ->groupBy('nik');
+            });
+
+
+        //Tunjangan
+        $jenis_tunjangan = Jenistunjangan::orderBy('kode_jenis_tunjangan')->get();
+        $select_tunjangan = [];
+        $select_field_tunjangan = [];
+        foreach ($jenis_tunjangan as $d) {
+            $select_tunjangan[] = DB::raw('SUM(IF(karyawan_tunjangan_detail.kode_jenis_tunjangan = "' . $d->kode_jenis_tunjangan . '", karyawan_tunjangan_detail.jumlah, 0)) as jumlah_' . $d->kode_jenis_tunjangan);
+            $select_field_tunjangan[] = 'jumlah_' . $d->kode_jenis_tunjangan;
+        }
+        $tunjangan = Detailtunjangan::query();
+        $tunjangan->join('karyawan_tunjangan', 'karyawan_tunjangan_detail.kode_tunjangan', '=', 'karyawan_tunjangan.kode_tunjangan');
+        $tunjangan->select(
+            'karyawan_tunjangan.nik',
+            ...$select_tunjangan
+        );
+        $tunjangan->whereIn('karyawan_tunjangan_detail.kode_tunjangan', function ($query) use ($periode_sampai) {
+            $query->select(DB::raw('MAX(kode_tunjangan)'))
+                ->from('karyawan_tunjangan')
+                ->where('tanggal_berlaku', '<=', $periode_sampai)
+                ->groupBy('nik');
+        });
+
+        $tunjangan->groupBy('karyawan_tunjangan.nik');
+
+
+        $penyesuaian_gaji = Detailpenyesuaiangaji::select('nik', 'penambah', 'pengurang')
+            ->join('karyawan_penyesuaian_gaji', 'karyawan_penyesuaian_gaji_detail.kode_penyesuaian_gaji', '=', 'karyawan_penyesuaian_gaji.kode_penyesuaian_gaji')
+            ->where('bulan', $request->bulan)
+            ->where('tahun', $request->tahun);
+
         $q_presensi = Karyawan::query();
         $q_presensi->select(
             'karyawan.nik',
             'nama_karyawan',
             'nama_jabatan',
+            'karyawan.kode_dept',
             'nama_dept',
             'karyawan.kode_cabang',
             'presensi.tanggal',
@@ -105,13 +183,42 @@ class LaporanController extends Controller
             'presensi.lintashari',
             'presensi.keterangan_izin_absen',
             'presensi.keterangan_izin_sakit',
-            'presensi.keterangan_izin_cuti'
+            'presensi.keterangan_izin_cuti',
+            'presensi.total_jam',
+            'gaji_pokok.jumlah as gaji_pokok',
+            'bpjs_kesehatan.jumlah as bpjs_kesehatan',
+            'bpjs_tenagakerja.jumlah as bpjs_tenagakerja',
+            'penambah',
+            'pengurang',
+            ...$select_field_tunjangan
         );
         $q_presensi->leftJoin('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan');
         $q_presensi->leftJoin('departemen', 'karyawan.kode_dept', '=', 'departemen.kode_dept');
         $q_presensi->leftJoinSub($presensi_detail, 'presensi', function ($join) {
             $join->on('karyawan.nik', '=', 'presensi.nik');
         });
+        $q_presensi->leftJoinSub($gaji_pokok, 'gaji_pokok', function ($join) {
+            $join->on('karyawan.nik', '=', 'gaji_pokok.nik');
+        });
+
+
+        $q_presensi->leftJoinSub($bpjs_kesehatan, 'bpjs_kesehatan', function ($join) {
+            $join->on('karyawan.nik', '=', 'bpjs_kesehatan.nik');
+        });
+
+        $q_presensi->leftJoinSub($bpjs_tenagakerja, 'bpjs_tenagakerja', function ($join) {
+            $join->on('karyawan.nik', '=', 'bpjs_tenagakerja.nik');
+        });
+
+
+        $q_presensi->leftJoinSub($tunjangan, 'tunjangan', function ($join) {
+            $join->on('karyawan.nik', '=', 'tunjangan.nik');
+        });
+
+        $q_presensi->leftJoinSub($penyesuaian_gaji, 'penyesuaian_gaji', function ($join) {
+            $join->on('karyawan.nik', '=', 'penyesuaian_gaji.nik');
+        });
+
         if (!empty($request->kode_cabang)) {
             $q_presensi->where('karyawan.kode_cabang', $request->kode_cabang);
         }
@@ -149,14 +256,29 @@ class LaporanController extends Controller
             $data['presensi'] = $presensi;
             return view('laporan.presensi_karyawan_cetak', $data);
         } else {
-            $laporan_presensi = $presensi->groupBy('nik')->map(function ($rows) {
+            $laporan_presensi = $presensi->groupBy('nik')->map(function ($rows) use ($jenis_tunjangan) {
                 $data = [
                     'nik' => $rows->first()->nik,
                     'nama_karyawan' => $rows->first()->nama_karyawan,
                     'nama_jabatan' => $rows->first()->nama_jabatan,
+                    'kode_dept' => $rows->first()->kode_dept,
                     'nama_dept' => $rows->first()->nama_dept,
-                    'kode_cabang' => $rows->first()->kode_cabang
+                    'kode_cabang' => $rows->first()->kode_cabang,
+                    'gaji_pokok' => $rows->first()->gaji_pokok,
+                    'bpjs_kesehatan' => $rows->first()->bpjs_kesehatan,
+                    'bpjs_tenagakerja' => $rows->first()->bpjs_tenagakerja,
+                    'penambah' => $rows->first()->penambah,
+                    'pengurang' => $rows->first()->pengurang,
+
                 ];
+
+                foreach ($jenis_tunjangan as $j) {
+                    $data = [
+                        ...$data,
+                        $j->kode_jenis_tunjangan => $rows->first()->{"jumlah_" . $j->kode_jenis_tunjangan}
+                    ];
+                }
+
                 foreach ($rows as $row) {
                     $data[$row->tanggal] = [
                         'status' => $row->status,
@@ -172,13 +294,19 @@ class LaporanController extends Controller
                         'lintashari' => $row->lintashari,
                         'keterangan_izin_absen' => $row->keterangan_izin_absen,
                         'keterangan_izin_sakit' => $row->keterangan_izin_sakit,
-                        'keterangan_izin_cuti' => $row->keterangan_izin_cuti
+                        'keterangan_izin_cuti' => $row->keterangan_izin_cuti,
+                        'total_jam' => $row->total_jam
                     ];
                 }
                 return $data;
             });
             $data['laporan_presensi'] = $laporan_presensi;
-            return view('laporan.presensi_cetak', $data);
+            $data['jenis_tunjangan'] = $jenis_tunjangan;
+            if ($request->format_laporan == 1) {
+                return view('laporan.presensi_cetak', $data);
+            } else if ($request->format_laporan == 2) {
+                return view('laporan.gaji_cetak', $data);
+            }
         }
     }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Charts\JeniskelaminkaryawanChart;
 use App\Charts\PendidikankaryawanChart;
 use App\Charts\StatusKaryawanChart;
+use App\Models\Cabang;
+use App\Models\Departemen;
 use App\Models\Karyawan;
 use App\Models\Presensi;
 use App\Models\User;
@@ -15,7 +17,7 @@ use Jenssegers\Agent\Agent;
 
 class DashboardController extends Controller
 {
-    public function index(StatusKaryawanChart $chart, JeniskelaminkaryawanChart $jkchart, PendidikankaryawanChart $pddchart)
+    public function index(StatusKaryawanChart $chart, JeniskelaminkaryawanChart $jkchart, PendidikankaryawanChart $pddchart, Request $request)
     {
         $agent = new Agent();
         $user = User::where('id', auth()->user()->id)->first();
@@ -66,11 +68,40 @@ class DashboardController extends Controller
                 ->first();
             return view('dashboard.karyawan', $data);
         } else {
+
+            //Dashboard Admin
             $sk = new Karyawan();
-            $data['status_karyawan'] = $sk->getRekapstatuskaryawan();
-            $data['chart'] = $chart->build();
-            $data['jkchart'] = $jkchart->build();
-            $data['pddchart'] = $pddchart->build();
+            $data['status_karyawan'] = $sk->getRekapstatuskaryawan($request);
+            $data['chart'] = $chart->build($request);
+            $data['jkchart'] = $jkchart->build($request);
+            $data['pddchart'] = $pddchart->build($request);
+
+            $queryPresensi = Presensi::query();
+            $queryPresensi->join('karyawan', 'presensi.nik', '=', 'karyawan.nik');
+            $queryPresensi->select(
+                DB::raw("SUM(IF(status='h',1,0)) as hadir"),
+                DB::raw("SUM(IF(status='i',1,0)) as izin"),
+                DB::raw("SUM(IF(status='s',1,0)) as sakit"),
+                DB::raw("SUM(IF(status='a',1,0)) as alpa"),
+                DB::raw("SUM(IF(status='c',1,0)) as cuti")
+            );
+            if (!empty($request->tanggal)) {
+                $queryPresensi->where('tanggal', $request->tanggal);
+            } else {
+                $queryPresensi->where('tanggal', date('Y-m-d'));
+            }
+
+            if (!empty($request->kode_cabang)) {
+                $queryPresensi->where('karyawan.kode_cabang', $request->kode_cabang);
+            }
+
+            if (!empty($request->kode_dept)) {
+                $queryPresensi->where('karyawan.kode_dept', $request->kode_dept);
+            }
+            $data['rekappresensi'] = $queryPresensi->first();
+            $data['departemen'] = Departemen::orderBy('kode_dept')->get();
+            $data['cabang'] = Cabang::orderBy('kode_cabang')->get();
+            // dd($data['rekappresensi']);
             return view('dashboard.dashboard', $data);
         }
     }

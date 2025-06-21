@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\BpjskesehatanController;
+use App\Http\Controllers\BpjstenagakerjaController;
 use App\Http\Controllers\CabangController;
 use App\Http\Controllers\CutiController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DendaController;
 use App\Http\Controllers\DepartemenController;
 use App\Http\Controllers\FacerecognitionController;
+use App\Http\Controllers\GajipokokController;
 use App\Http\Controllers\GeneralsettingController;
 use App\Http\Controllers\HariliburController;
 use App\Http\Controllers\IzinabsenController;
@@ -14,14 +17,17 @@ use App\Http\Controllers\IzinsakitController;
 use App\Http\Controllers\JabatanController;
 use App\Http\Controllers\JamkerjabydeptController;
 use App\Http\Controllers\JamkerjaController;
+use App\Http\Controllers\JenistunjanganController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\PengajuanizinController;
+use App\Http\Controllers\PenyesuaiangajiController;
 use App\Http\Controllers\Permission_groupController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TunjanganController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WagatewayController;
 use Illuminate\Support\Facades\Route;
@@ -108,7 +114,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/users/{id}/editpassword', 'editpassword')->name('users.editpassword');
         Route::put('/users/{id}/updatepassword', 'updatepassword')->name('users.updatepassword');
     });
-Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
+
     //Data Master
     //Dat Karyawan
     Route::controller(KaryawanController::class)->group(function () {
@@ -136,6 +142,7 @@ Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
         Route::get('/karyawan/{nik}/idcard', 'idcard')->name('karyawan.idcard');
 
         Route::get('/karyawan/getkaryawan', 'getkaryawan')->name('karyawan.getkaryawan');
+        Route::get('presensi/jadwalkerja', [PresensiController::class, 'jadwalKerja'])->name('presensi.jadwalkerja');
     });
 
     Route::controller(DepartemenController::class)->group(function () {
@@ -184,6 +191,70 @@ Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
         Route::delete('/jamkerja/{kode_jam_kerja}/delete', 'destroy')->name('jamkerja.delete')->can('jamkerja.delete');
     });
 
+
+    Route::controller(GajipokokController::class)->group(function () {
+        Route::get('/gajipokok', 'index')->name('gajipokok.index')->can('gajipokok.index');
+        Route::get('/gajipokok/create', 'create')->name('gajipokok.create')->can('gajipokok.create');
+        Route::post('/gajipokok', 'store')->name('gajipokok.store')->can('gajipokok.create');
+        Route::get('/gajipokok/{kode_gaji}/edit', 'edit')->name('gajipokok.edit')->can('gajipokok.edit');
+        Route::put('/gajipokok/{kode_gaji}/update', 'update')->name('gajipokok.update')->can('gajipokok.edit');
+        Route::delete('/gajipokok/{kode_gaji}/delete', 'destroy')->name('gajipokok.delete')->can('gajipokok.delete');
+    });
+
+    Route::controller(JenistunjanganController::class)->group(function () {
+        Route::get('/jenistunjangan', 'index')->name('jenistunjangan.index')->can('jenistunjangan.index');
+        Route::get('/jenistunjangan/create', 'create')->name('jenistunjangan.create')->can('jenistunjangan.create');
+        Route::post('/jenistunjangan', 'store')->name('jenistunjangan.store')->can('jenistunjangan.create');
+        Route::get('/jenistunjangan/{kode_jenis_tunjangan}/edit', 'edit')->name('jenistunjangan.edit')->can('jenistunjangan.edit');
+        Route::put('/jenistunjangan/{kode_jenis_tunjangan}/update', 'update')->name('jenistunjangan.update')->can('jenistunjangan.edit');
+        Route::delete('/jenistunjangan/{kode_jenis_tunjangan}/delete', 'destroy')->name('jenistunjangan.delete')->can('jenistunjangan.delete');
+    });
+
+
+    Route::controller(TunjanganController::class)->group(function () {
+        Route::get('/tunjangan', 'index')->name('tunjangan.index')->can('tunjangan.index');
+        Route::get('/tunjangan/create', 'create')->name('tunjangan.create')->can('tunjangan.create');
+        Route::post('/tunjangan', 'store')->name('tunjangan.store')->can('tunjangan.create');
+        Route::get('/tunjangan/{kode_tunjangan}/edit', 'edit')->name('tunjangan.edit')->can('tunjangan.edit');
+        Route::put('/tunjangan/{kode_tunjangan}/update', 'update')->name('tunjangan.update')->can('tunjangan.edit');
+        Route::delete('/tunjangan/{kode_tunjangan}/delete', 'destroy')->name('tunjangan.delete')->can('tunjangan.delete');
+    });
+
+
+    Route::controller(BpjskesehatanController::class)->group(function () {
+        Route::get('/bpjskesehatan', 'index')->name('bpjskesehatan.index')->can('bpjskesehatan.index');
+        Route::get('/bpjskesehatan/create', 'create')->name('bpjskesehatan.create')->can('bpjskesehatan.create');
+        Route::post('/bpjskesehatan', 'store')->name('bpjskesehatan.store')->can('bpjskesehatan.create');
+        Route::get('/bpjskesehatan/{kode_bpjs_kesehatan}/edit', 'edit')->name('bpjskesehatan.edit')->can('bpjskesehatan.edit');
+        Route::put('/bpjskesehatan/{kode_bpjs_kesehatan}/update', 'update')->name('bpjskesehatan.update')->can('bpjskesehatan.edit');
+        Route::delete('/bpjskesehatan/{kode_bpjs_kesehatan}/delete', 'destroy')->name('bpjskesehatan.delete')->can('bpjskesehatan.delete');
+    });
+
+    Route::controller(BpjstenagakerjaController::class)->group(function () {
+        Route::get('/bpjstenagakerja', 'index')->name('bpjstenagakerja.index')->can('bpjstenagakerja.index');
+        Route::get('/bpjstenagakerja/create', 'create')->name('bpjstenagakerja.create')->can('bpjstenagakerja.create');
+        Route::post('/bpjstenagakerja', 'store')->name('bpjstenagakerja.store')->can('bpjstenagakerja.create');
+        Route::get('/bpjstenagakerja/{kode_bpjs_tk}/edit', 'edit')->name('bpjstenagakerja.edit')->can('bpjstenagakerja.edit');
+        Route::put('/bpjstenagakerja/{kode_bpjs_tk}/update', 'update')->name('bpjstenagakerja.update')->can('bpjstenagakerja.edit');
+        Route::delete('/bpjstenagakerja/{kode_bpjs_tk}/delete', 'destroy')->name('bpjstenagakerja.delete')->can('bpjstenagakerja.delete');
+    });
+
+
+    Route::controller(PenyesuaiangajiController::class)->group(function () {
+        Route::get('/penyesuaiangaji', 'index')->name('penyesuaiangaji.index')->can('penyesuaiangaji.index');
+        Route::get('/penyesuaiangaji/create', 'create')->name('penyesuaiangaji.create')->can('penyesuaiangaji.create');
+        Route::post('/penyesuaiangaji', 'store')->name('penyesuaiangaji.store')->can('penyesuaiangaji.create');
+        Route::get('/penyesuaiangaji/{kode_penyesuaian_gaji}/edit', 'edit')->name('penyesuaiangaji.edit')->can('penyesuaiangaji.edit');
+        Route::get('/penyesuaiangaji/{kode_penyesuaian_gaji}/setkaryawan', 'setkaryawan')->name('penyesuaiangaji.setkaryawan')->can('penyesuaiangaji.edit');
+        Route::get('/penyesuaiangaji/{kode_penyesuaian_gaji}/addkaryawan', 'addkaryawan')->name('penyesuaiangaji.addkaryawan')->can('penyesuaiangaji.edit');
+        Route::post('/penyesuaiangaji/{kode_penyesuaian_gaji}/storekaryawan', 'storekaryawan')->name('penyesuaiangaji.storekaryawan')->can('penyesuaiangaji.edit');
+        Route::get('/penyesuaiangaji/{kode_penyesuaian_gaji}/{nik}/editkaryawan', 'editkaryawan')->name('penyesuaiangaji.editkaryawan')->can('penyesuaiangaji.edit');
+        Route::put('/penyesuaiangaji/{kode_penyesuaian_gaji}/{nik}/updatekaryawan', 'updatekaryawan')->name('penyesuaiangaji.updatekaryawan')->can('penyesuaiangaji.edit');
+        Route::put('/penyesuaiangaji/{kode_penyesuaian_gaji}/update', 'update')->name('penyesuaiangaji.update')->can('penyesuaiangaji.edit');
+        Route::delete('/penyesuaiangaji/{kode_penyesuaian_gaji}/delete', 'destroy')->name('penyesuaiangaji.delete')->can('penyesuaiangaji.delete');
+        Route::delete('/penyesuaiangaji/{kode_penyesuaian_gaji}/{nik}/deletekaryawan', 'destroykaryawan')->name('penyesuaiangaji.deletekaryawan')->can('penyesuaiangaji.delete');
+    });
+
     Route::controller(HariliburController::class)->group(function () {
         Route::get('/harilibur', 'index')->name('harilibur.index')->can('harilibur.index');
         Route::get('/harilibur/create', 'create')->name('harilibur.create')->can('harilibur.create');
@@ -204,7 +275,6 @@ Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
     Route::controller(PresensiController::class)->group(function () {
         Route::get('/presensi', 'index')->name('presensi.index')->can('presensi.index');
         Route::get('/presensi/histori', 'histori')->name('presensi.histori')->can('presensi.index');
-        Route::get('presensi/jadwalkerja', [PresensiController::class, 'jadwalKerja'])->name('presensi.jadwalkerja');
         Route::get('/presensi/create', 'create')->name('presensi.create')->can('presensi.create');
         Route::post('/presensi', 'store')->name('presensi.store')->can('presensi.create');
         Route::post('/presensi/edit', 'edit')->name('presensi.edit')->can('presensi.edit');
@@ -215,7 +285,6 @@ Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
 
         Route::post('/presensi/getdatamesin', 'getdatamesin')->name('presensi.getdatamesin');
         Route::post('/presensi/{pin}/{status_scan}/updatefrommachine', 'updatefrommachine')->name('presensi.updatefrommachine');
-       
     });
 
     Route::controller(JamkerjabydeptController::class)->group(function () {
@@ -301,8 +370,8 @@ Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
         Route::get('/facerecognition/getwajah', 'getWajah')->name('facerecognition.getwajah');
     });
 
-    Route::controller(WagatewayController::class)->group(function () {
-        Route::get('/wagateway', 'index')->name('wagateway.index')->can('wagateway.index');
+    Route::middleware('role:super admin')->controller(WagatewayController::class)->group(function () {
+        Route::get('/wagateway', 'index')->name('wagateway.index');
     });
 });
 
@@ -318,5 +387,9 @@ Route::get('/createrolepermission', function () {
         echo "Error";
     }
 });
+
+// Route::get('/storage/{path}', function ($path) {
+//     return response()->file(storage_path('app/public/' . $path));
+// })->where('path', '.*');
 
 require __DIR__ . '/auth.php';

@@ -2,6 +2,7 @@
 
 namespace App\Charts;
 
+use App\Models\Karyawan;
 use ArielMejiaDev\LarapexCharts\LarapexChart;
 use Illuminate\Support\Facades\DB;
 
@@ -14,14 +15,21 @@ class PendidikankaryawanChart
         $this->chart = $chart;
     }
 
-    public function build(): \ArielMejiaDev\LarapexCharts\BarChart
+    public function build($request = null): \ArielMejiaDev\LarapexCharts\BarChart
     {
         // Ambil jumlah karyawan berdasarkan pendidikan_terakhir
-        $rawData = DB::table('karyawan')
-            ->select('pendidikan_terakhir', DB::raw('count(*) as total'))
-            ->groupBy('pendidikan_terakhir')
-            ->pluck('total', 'pendidikan_terakhir')
-            ->toArray();
+
+        $query = Karyawan::query();
+        $query->select('pendidikan_terakhir', DB::raw('count(*) as total'));
+        $query->groupBy('pendidikan_terakhir');
+        if (!empty($request->kode_cabang)) {
+            $query->where('karyawan.kode_cabang', $request->kode_cabang);
+        }
+
+        if (!empty($request->kode_dept)) {
+            $query->where('karyawan.kode_dept', $request->kode_dept);
+        }
+        $rawData = $query->pluck('total', 'pendidikan_terakhir')->toArray();
 
         // Mapping pendidikan_terakhir ke label lengkap
         $pendidikanLabels = [

@@ -46,7 +46,8 @@ class PresensiController extends Controller
                 'jam_out',
                 'foto_out',
                 'status',
-                'lintashari'
+                'lintashari',
+                'total_jam'
             )
             ->where('presensi.tanggal', $tanggal);
 
@@ -72,12 +73,21 @@ class PresensiController extends Controller
             'foto_in',
             'foto_out',
             'lintashari',
-            'karyawan.pin'
+            'karyawan.pin',
+            'total_jam'
         );
         $query->leftjoinSub($presensi, 'presensi', function ($join) {
             $join->on('karyawan.nik', '=', 'presensi.nik');
         });
         $query->orderBy('nama_karyawan');
+        if (!empty($request->kode_cabang)) {
+            $query->where('karyawan.kode_cabang', $request->kode_cabang);
+        }
+
+        if (!empty($request->nama_karyawan)) {
+            $query->where('nama_karyawan', 'like', '%' . $request->nama_karyawan . '%');
+        }
+
         $karyawan = $query->paginate(10);
         $karyawan->appends(request()->all());
         $cabang = Cabang::orderBy('kode_cabang')->get();
@@ -162,9 +172,6 @@ class PresensiController extends Controller
             return view('presensi.notif_libur', $data);
         } else if ($jamkerja == null) {
             return view('presensi.notif_jamkerja');
-        } else if (strtoupper($jamkerja->nama_jam_kerja) == 'LIBUR') {  // <-- TAMBAHKAN PENGECEKAN INI
-            $data['keterangan_libur'] = "Hari ini Anda dijadwalkan libur.";
-            return view('presensi.notif_libur', $data);
         }
 
         $data['cabang'] = Cabang::all();
@@ -181,6 +188,7 @@ class PresensiController extends Controller
 
     public function store(Request $request)
     {
+        $generalsetting = Pengaturanumum::where('id', 1)->first();
         $user = User::where('id', auth()->user()->id)->first();
         $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
         $karyawan = Karyawan::where('nik', $userkaryawan->nik)->first();
@@ -247,14 +255,14 @@ class PresensiController extends Controller
         $jam_presensi = $tanggal_sekarang . " " . $jam_sekarang;
 
 
+        $batas_jam_absen = $generalsetting->batas_jam_absen * 60;
 
         $jam_masuk = $tanggal_presensi . " " . date('H:i', strtotime($jam_kerja->jam_masuk));
         //Jam Mulai Absen adalah 60 Menit Sebelum Jam Masuk
-        $jam_mulai_masuk = $tanggal_presensi . " " . date('H:i', strtotime('-60 minutes', strtotime($jam_masuk)));
+        $jam_mulai_masuk = $tanggal_presensi . " " . date('H:i', strtotime('-' . $batas_jam_absen . ' minutes', strtotime($jam_masuk)));
 
         //Jamulai Absen Pulang adalah 1 Jam dari Jam Masuk
-        $jam_mulai_pulang =  date('Y-m-d H:i', strtotime('+60 minutes', strtotime($jam_masuk)));
-        $batas_akhir_masuk = date('Y-m-d H:i', strtotime('+6 hours', strtotime($jam_masuk)));
+        $jam_mulai_pulang =  date('Y-m-d H:i', strtotime('+' . $batas_jam_absen . ' minutes', strtotime($jam_masuk)));
         //return $jam_mulai_pulang;
         $jam_pulang = $tanggal_pulang . " " . $jam_kerja->jam_pulang;
 
@@ -271,9 +279,9 @@ class PresensiController extends Controller
             if ($status == 1) {
                 if ($presensi_hariini && $presensi_hariini->jam_in != null) {
                     return response()->json(['status' => false, 'message' => 'Anda Sudah Absen Masuk Hari Ini', 'notifikasi' => 'notifikasi_sudahabsen'], 400);
-                } else if ($jam_presensi < $jam_mulai_masuk) {
+                } else if ($jam_presensi < $jam_mulai_masuk && $generalsetting->batasi_absen == 1) {
                     return response()->json(['status' => false, 'message' => 'Maaf Belum Waktunya Absen Masuk, Waktu Absen Dimulai Pukul ' . formatIndo3($jam_mulai_masuk), 'notifikasi' => 'notifikasi_mulaiabsen'], 400);
-                } else if ($jam_presensi > $batas_akhir_masuk) {
+                } else if ($jam_presensi > $jam_mulai_pulang && $generalsetting->batasi_absen == 1) {
                     return response()->json(['status' => false, 'message' => 'Maaf Waktu Absen Masuk Sudah Habis ', 'notifikasi' => 'notifikasi_akhirabsen'], 400);
                 } else {
                     try {
@@ -312,7 +320,7 @@ class PresensiController extends Controller
             } else {
                 if ($presensi_hariini && $presensi_hariini->jam_out != null) {
                     return response()->json(['status' => false, 'message' => 'Anda Sudah Absen Pulang Hari Ini', 'notifikasi' => 'notifikasi_sudahabsen'], 400);
-                } else if ($jam_presensi < $jam_mulai_pulang) {
+                } else if ($jam_presensi < $jam_mulai_pulang && $generalsetting->batasi_absen == 1) {
                     return response()->json(['status' => false, 'message' => 'Maaf Belum Waktunya Absen Pulang, Waktu Absen Dimulai Pukul ' . formatIndo3($jam_mulai_pulang), 'notifikasi' => 'notifikasi_mulaiabsen'], 400);
                 } else {
                     try {
@@ -355,23 +363,26 @@ class PresensiController extends Controller
     function sendwa($no_hp, $message)
     {
         $generalsetting = Pengaturanumum::where('id', 1)->first();
-        $curl = curl_init();
+        $url = $generalsetting->domain_wa_gateway . "/send-message"; // Ganti dengan URL gateway Anda
+        $apiKey = $generalsetting->wa_api_key; // Ganti dengan API key Anda
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $generalsetting->domain_wa_gateway . '/send-message',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => array('message' => $message, 'number' => $no_hp, 'file_dikirim' => ''),
-        ));
+        $data = [
+            "to" => $no_hp, // Nomor tujuan (bisa 08xxx atau 62xxx)
+            "text" => $message
+        ];
 
-        $response = curl_exec($curl);
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json",
+            "x-api-key: $apiKey"
+        ]);
 
-        curl_close($curl);
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
     }
     public function edit(Request $request)
     {
@@ -559,62 +570,7 @@ class PresensiController extends Controller
             ->get();
         return view('presensi.histori', $data);
     }
-public function jadwalKerja(Request $request)
-{
-    // 1. Tentukan Bulan dan Tahun yang akan ditampilkan, default ke bulan ini
-    $bulan = $request->bulan ?? date('m');
-    $tahun = $request->tahun ?? date('Y');
 
-    // 2. Dapatkan data Karyawan yang sedang login dengan aman
-    $user = auth()->user();
-    if (!$user) { return redirect('/login'); }
-
-    $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
-    if (!$userkaryawan) { return redirect('/dashboard')->with('error', 'Data karyawan Anda tidak ditemukan.'); }
-
-    $karyawan = Karyawan::where('nik', $userkaryawan->nik)->first();
-    if (!$karyawan) { return redirect('/dashboard')->with('error', 'Detail data karyawan tidak valid.'); }
-
-    // 3. Ambil semua jenis data jadwal & libur untuk bulan yang ditampilkan
-    // Jadwal Mingguan Pribadi
-    $jadwalMingguan = Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-        ->where('nik', $karyawan->nik)->get()->keyBy('hari');
-
-    // Jadwal Mingguan Departemen (sebagai fallback)
-    $jadwalDeptMingguan = Detailsetjamkerjabydept::join('presensi_jamkerja_bydept', 'presensi_jamkerja_bydept_detail.kode_jk_dept', '=', 'presensi_jamkerja_bydept.kode_jk_dept')
-        ->join('presensi_jamkerja', 'presensi_jamkerja_bydept_detail.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-        ->where('kode_dept', $karyawan->kode_dept)->where('kode_cabang', $karyawan->kode_cabang)->get()->keyBy('hari');
-
-    // Jadwal Khusus per Tanggal
-    $jadwalByDate = Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
-        ->where('nik', $karyawan->nik)
-        ->whereYear('tanggal', $tahun)->whereMonth('tanggal', $bulan)->get()->keyBy('tanggal');
-
-    // Data Hari Libur Nasional
-    $hariLibur = Harilibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $bulan)->get()->keyBy('tanggal');
-
-    // Data Libur Khusus untuk Karyawan ini
-    $liburKhususKaryawan = Detailharilibur::join('hari_libur', 'hari_libur_detail.kode_libur', '=', 'hari_libur.kode_libur')
-        ->where('nik', $karyawan->nik)
-        ->whereYear('hari_libur.tanggal', $tahun)
-        ->whereMonth('hari_libur.tanggal', $bulan)
-        ->get()->keyBy('tanggal');
-
-    // 4. Siapkan semua data yang akan dikirim ke view
-    $data['bulan'] = $bulan;
-    $data['tahun'] = $tahun;
-    $data['nama_bulan'] = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    $data['nama_karyawan'] = $karyawan->nama_karyawan;
-
-    // Kirim semua data jadwal dan libur ke view
-    $data['jadwalMingguan'] = $jadwalMingguan;
-    $data['jadwalDeptMingguan'] = $jadwalDeptMingguan;
-    $data['jadwalByDate'] = $jadwalByDate;
-    $data['hariLibur'] = $hariLibur;
-    $data['liburKhususKaryawan'] = $liburKhususKaryawan;
-// dd($data);
-    return view('presensi.jadwalkerja', $data);
-}
 
     public function updatefrommachine(Request $request, $pin, $status_scan)
     {

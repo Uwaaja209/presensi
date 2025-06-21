@@ -14,7 +14,7 @@ class Karyawan extends Model
     public $incrementing = false;
     protected $guarded = [];
 
-    function getRekapstatuskaryawan()
+    function getRekapstatuskaryawan($request = null)
     {
         $query = Karyawan::query();
         $query->select(
@@ -23,6 +23,13 @@ class Karyawan extends Model
             DB::raw("SUM(IF(status_karyawan = 'O', 1, 0)) as jml_outsourcing"),
             DB::raw("SUM(IF(status_aktif_karyawan = '1', 1, 0)) as jml_aktif"),
         );
+        if (!empty($request->kode_cabang)) {
+            $query->where('karyawan.kode_cabang', $request->kode_cabang);
+        }
+
+        if (!empty($request->kode_dept)) {
+            $query->where('karyawan.kode_dept', $request->kode_dept);
+        }
         return $query->first();
     }
 }

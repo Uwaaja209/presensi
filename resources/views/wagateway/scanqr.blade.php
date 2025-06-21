@@ -1,647 +1,371 @@
 @extends('layouts.app')
-@section('titlepage', 'WhatsApp QR Scanner')
+@section('titlepage', 'WhatsApp Gateway')
 @section('navigasi')
-    <span>WhatsApp QR Scanner</span>
+    <span>WhatsApp Gateway Dashboard</span>
 @endsection
 @section('content')
+    <div class="container-fluid py-5 px-2">
+        <div class="row justify-content-center mb-4">
+            <div class="col-12 col-lg-10">
+                <h1 class="fw-bold text-center text-success mb-2" style="font-size:2.3rem;">
+                    <i class="bi bi-whatsapp me-2"></i>WhatsApp Gateway Dashboard
+                </h1>
+                <p class="text-center text-secondary mb-4" style="font-size:1.1rem;">Monitor, Scan QR, dan Kirim Pesan
+                    WhatsApp dengan mudah dan cepat.</p>
+                <hr class="mb-0" />
+            </div>
+        </div>
+        <!-- Baris 1: 3 kolom utama sejajar -->
+        <div class="row g-4 mb-2">
 
-    <style>
-        .qrcode {
-            padding: 16px;
-            margin-bottom: 30px;
-            position: relative;
-            min-height: 250px;
-            transition: all 0.3s ease;
-            background: #fff;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .qrcode.hidden {
-            display: none;
-        }
-
-        .qrcode img {
-            margin: 0 auto;
-            max-width: 250px;
-            height: auto;
-            transition: opacity 0.3s ease;
-            will-change: opacity;
-            backface-visibility: hidden;
-            transform: translateZ(0);
-            opacity: 0;
-            border-radius: 4px;
-        }
-
-        .qrcode img.loaded {
-            opacity: 1;
-        }
-
-        .loading-text {
-            color: #566a7f;
-            margin: 10px 0;
-            font-size: 14px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .error-text {
-            color: #dc3545;
-            margin: 10px 0;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .success-text {
-            color: #25D366;
-            margin: 10px 0;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #f0f9f4;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border: 1px solid #d4edda;
-            font-weight: 500;
-        }
-
-        .success-text::before {
-            content: "✓";
-            color: #25D366;
-            font-weight: bold;
-        }
-
-        .connection-status {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #ccc;
-            margin-right: 8px;
-        }
-
-        .connection-status.connected {
-            background: #28a745;
-        }
-
-        .connection-status.disconnected {
-            background: #dc3545;
-        }
-
-        .connection-status.connecting {
-            background: #ffc107;
-        }
-
-        .retry-button {
-            display: none;
-            margin-top: 10px;
-            padding: 8px 16px;
-            background: #696cff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .retry-button:hover {
-            background: #5f61e6;
-            transform: translateY(-1px);
-        }
-
-        .loading-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #696cff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .whatsapp-status {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin: 10px 0;
-            transition: all 0.3s ease;
-            border: 1px solid #e9ecef;
-        }
-
-        .whatsapp-status-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 20px;
-            flex-shrink: 0;
-            transition: all 0.3s ease;
-        }
-
-        .whatsapp-status-icon.connected {
-            background: #25D366;
-        }
-
-        .whatsapp-status-icon.disconnected {
-            background: #dc3545;
-        }
-
-        .whatsapp-status-content {
-            text-align: left;
-            flex: 1;
-        }
-
-        .whatsapp-status-text {
-            font-size: 15px;
-            color: #566a7f;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .whatsapp-status-time {
-            font-size: 13px;
-            color: #697a8d;
-        }
-
-        .list-unstyled li {
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .list-unstyled li:last-child {
-            border-bottom: none;
-        }
-
-        @media (max-width: 991.98px) {
-            .col-lg-6 {
-                margin-bottom: 1rem;
-            }
-        }
-
-        .success-icon-container {
-            display: none;
-            width: 250px;
-            height: 250px;
-            margin: 0 auto;
-            background: #25D366;
-            border-radius: 50%;
-            align-items: center;
-            justify-content: center;
-            animation: scaleIn 0.3s ease-out;
-            position: relative;
-            z-index: 10;
-        }
-
-        .success-icon-container.show {
-            display: flex;
-        }
-
-        .success-icon {
-            color: white;
-            font-size: 100px;
-        }
-
-        @keyframes scaleIn {
-            from {
-                transform: scale(0);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .qrcode.hidden {
-            opacity: 0;
-            transform: scale(0.95);
-            display: none;
-        }
-    </style>
-
-
-    <div class="row">
-        <div class="col-12">
-            <div class="row">
-                <!-- QR Code Section -->
-                <div class="col-lg-6 col-md-6 col-sm-12">
-                    <div class="card h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">QR Code Scanner</h5>
-                            <div class="card-tools">
-                                <div class="connection-status" id="connection-status"></div>
-                            </div>
+            <!-- QR Code -->
+            <div class="col-12 col-md-4 d-flex">
+                <div class="card rounded-4 shadow-lg border-0 w-100 flex-fill bg-white h-100">
+                    <div class="card-header rounded-top-4 bg-gradient bg-success text-white fw-semibold text-center py-3">
+                        <i class="bi bi-qr-code-scan me-2"></i>Scan QR WhatsApp
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column justify-content-between h-100">
+                        <div>
+                            <div id="qr-status" class="mb-2 small text-muted text-center"></div>
+                            <div id="qr-container" class="d-flex justify-content-center align-items-center mb-3"
+                                style="min-height:150px;"></div>
                         </div>
-                        <div class="card-body">
-                            <div id="qrcode-container" class="text-center">
-                                <div id="success-icon-container" class="success-icon-container">
-                                    <i class="ti ti-check success-icon"></i>
-                                </div>
-                                <div class="qrcode">
-                                    <div id="loading-container" class="loading-container">
-                                        <div class="loading-spinner"></div>
-                                    </div>
-                                    <img src="{{ $generalsetting->domain_wa_gateway }}/assets/loader.gif" alt="loading" id="qrcode"
-                                        style="width: 250px;">
-                                </div>
-                                <div id="status-message" class="loading-text mt-3">Menghubungkan ke server...</div>
-                                <button id="retry-button" class="retry-button mt-3">Coba Lagi</button>
+                        <button id="btn-refresh-qr"
+                            class="btn btn-success w-100 mt-auto rounded-pill fw-semibold shadow-sm">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Refresh QR
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Monitoring Queue -->
+            <div class="col-12 col-md-5 d-flex">
+                <div class="card rounded-4 shadow-lg border-0 w-100 flex-fill bg-white h-100">
+                    <div class="card-header rounded-top-4 bg-gradient bg-primary text-white fw-semibold text-center py-3">
+                        <i class="bi bi-list-task me-2"></i>Monitoring Queue
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column justify-content-between h-100">
+                        <div>
+                            <div id="queue-status" class="mb-2 small text-muted"></div>
+                            <div class="table-responsive mb-2">
+                                <table
+                                    class="table table-hover table-bordered table-sm align-middle mb-0 rounded-3 overflow-hidden">
+                                    <thead class="table-primary bg-gradient text-center align-middle">
+                                        <tr>
+                                            <th class="fw-semibold">#</th>
+                                            <th class="fw-semibold">JID Tujuan</th>
+                                            <th class="fw-semibold">Pesan</th>
+                                            <th class="fw-semibold">Enqueue</th>
+                                            <th class="fw-semibold">Countdown</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="queue-table" class="bg-white"></tbody>
+                                </table>
                             </div>
+                            <div id="inflight-message" class="text-warning small"></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Status and Guide Section -->
-                <div class="col-lg-6 col-md-6 col-sm-12">
-                    <div class="card h-100">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Status & Panduan</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- WhatsApp Status Indicator -->
-                            <div id="whatsapp-status" class="whatsapp-status mb-4">
-                                <div id="whatsapp-status-icon" class="whatsapp-status-icon">
-                                    <i class="ti ti-brand-whatsapp"></i>
-                                </div>
-                                <div class="whatsapp-status-content">
-                                    <div id="whatsapp-status-text" class="whatsapp-status-text">Status WhatsApp</div>
-                                    <div id="whatsapp-status-time" class="whatsapp-status-time"></div>
-                                </div>
+            </div>
+            <!-- Test Kirim Pesan -->
+            <div class="col-12 col-md-3 d-flex">
+                <div class="card rounded-4 shadow-lg border-0 w-100 flex-fill bg-white h-100">
+                    <div class="card-header rounded-top-4 bg-gradient bg-warning text-dark fw-semibold text-center py-3">
+                        <i class="bi bi-send-check me-2"></i>Test Kirim Pesan
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column justify-content-between h-100">
+                        <form id="send-form" class="flex-fill">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small mb-1" for="to">Nomor Tujuan</label>
+                                <input type="text" id="to" class="form-control rounded-3 border-1"
+                                    placeholder="6281xxxxxxx" required>
+                                <div class="form-text ms-1">Tanpa +, contoh: 6281xxxxxxx</div>
                             </div>
-
-                            <div class="card">
-                                <div class="card-header bg-transparent">
-                                    <h6 class="card-title mb-0">Panduan Penggunaan</h6>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-unstyled mb-0">
-                                        <li class="mb-3">
-                                            <div class="d-flex align-items-start">
-                                                <i class="ti ti-scan text-success me-2 mt-1"></i>
-                                                <span>Scan kode QR berikut dengan aplikasi WhatsApp anda, sebagaimana
-                                                    Whatsapp Web biasanya.</span>
-                                            </div>
-                                        </li>
-                                        <li class="mb-3">
-                                            <div class="d-flex align-items-start">
-                                                <i class="ti ti-refresh text-success me-2 mt-1"></i>
-                                                <span>Sesi Whatsapp Web yang aktif akan keluar, diganti dengan server
-                                                    ini.</span>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="d-flex align-items-start">
-                                                <i class="ti ti-alert-triangle text-warning me-2 mt-1"></i>
-                                                <span><b>Gunakan dengan bijak.</b></span>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small mb-1" for="text">Pesan</label>
+                                <textarea id="text" class="form-control rounded-3 border-1" rows="3" placeholder="Tulis pesan Anda..."
+                                    required></textarea>
                             </div>
+                            <div class="d-flex align-items-center gap-2 mt-2">
+                                <button type="submit"
+                                    class="btn btn-warning text-white flex-fill rounded-pill fw-semibold shadow-sm">
+                                    <i class="bi bi-send me-1"></i>Kirim Pesan
+                                </button>
+                            </div>
+                            <span id="send-result" class="small mt-2 d-block"></span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Baris 2: Log Pengiriman WhatsApp Full Width -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card rounded-4 shadow-lg border-0 w-100 flex-fill bg-white">
+                    <div class="card-header rounded-top-4 bg-gradient bg-info text-dark fw-semibold text-center py-3">
+                        <i class="bi bi-chat-dots me-2"></i>Log Pengiriman Pesan WhatsApp
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Filter Form -->
+                        <form id="filter-form" class="row g-2 align-items-end mb-3">
+                            <div class="col-auto">
+                                <label for="filter-start" class="form-label mb-1 small">Tanggal Mulai</label>
+                                <input type="date" id="filter-start" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-auto">
+                                <label for="filter-end" class="form-label mb-1 small">Tanggal Akhir</label>
+                                <input type="date" id="filter-end" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-sm btn-primary px-3">Filter</button>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" id="filter-reset" class="btn btn-sm btn-secondary px-3">Reset</button>
+                            </div>
+                        </form>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-hover table-sm align-middle mb-0"
+                                id="wamessages-table">
+                                <thead class="table-info text-center align-middle">
+                                    <tr>
+                                        <th class="fw-semibold">ID</th>
+                                        <th class="fw-semibold">Sender</th>
+                                        <th class="fw-semibold">Receiver</th>
+                                        <th class="fw-semibold">Pesan</th>
+                                        <th class="fw-semibold">Status</th>
+                                        <th class="fw-semibold">Error</th>
+                                        <th class="fw-semibold">Waktu</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wamessages-tbody"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 @endsection
+
+<style>
+    .wa-pulse-anim {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 120px;
+    }
+
+    .wa-pulse {
+        width: 70px;
+        height: 70px;
+        background: #25d366;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 0 0 #25d36680;
+        animation: wa-pulse-ring 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+        position: relative;
+    }
+
+    .wa-pulse i {
+        color: #fff;
+        font-size: 2.2rem;
+    }
+
+    @keyframes wa-pulse-ring {
+        0% {
+            box-shadow: 0 0 0 0 #25d36680;
+        }
+
+        70% {
+            box-shadow: 0 0 0 18px #25d36600;
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 #25d36600;
+        }
+    }
+
+    .wa-pulse-text {
+        margin-top: 10px;
+        font-size: 1rem;
+        color: #25d366;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-align: center;
+        animation: wa-pulse-text-fade 1.5s infinite;
+    }
+
+    @keyframes wa-pulse-text-fade {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.7;
+        }
+    }
+</style>
+
 @push('myscript')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js" crossorigin="anonymous"></script>
-    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js" crossorigin="anonymous"></script>
     <script>
-        // Cache DOM elements
-        const qrcode = document.getElementById("qrcode");
-        const qrcodeContainer = document.getElementById("qrcode-container");
-        const statusMessage = document.getElementById("status-message");
-        const connectionStatus = document.getElementById("connection-status");
-        const retryButton = document.getElementById("retry-button");
-        const loadingContainer = document.getElementById("loading-container");
-        const successIconContainer = document.getElementById("success-icon-container");
-        const whatsappStatusIcon = document.getElementById("whatsapp-status-icon");
-        const whatsappStatusText = document.getElementById("whatsapp-status-text");
-        const whatsappStatusTime = document.getElementById("whatsapp-status-time");
-        const baseUrl = "{{ $generalsetting->domain_wa_gateway }}";
-        // Update connection state tracking
-        let connectionState = {
-            isConnected: false,
-            isWhatsAppConnected: false,
-            lastCheck: null,
-            reconnectAttempts: 0,
-            maxReconnectAttempts: 5,
-            reconnectionInterval: null,
-            pollingInterval: null
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ganti sesuai domain API Gateway Anda
+            const API_BASE = "{{ $generalsetting->domain_wa_gateway }}";
+            // localStorage.setItem('wa_api_base', API_BASE);
+            const API_KEY = "{{ $generalsetting->wa_api_key }}";
 
-        // Initialize socket.io connection
-        const socket = io(baseUrl, {
-            transports: ['websocket'],
-            upgrade: false,
-            reconnection: true,
-            reconnectionAttempts: Infinity,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            timeout: 10000,
-            autoConnect: true,
-            forceNew: true
-        });
-
-        // Function to update WhatsApp status UI
-        function updateWhatsAppStatus(connected) {
-            console.log('Updating WhatsApp status:', connected);
-
-            if (connected) {
-                // Update status icon
-                whatsappStatusIcon.className = 'whatsapp-status-icon connected';
-                whatsappStatusIcon.innerHTML = '<i class="ti ti-check"></i>';
-
-                // Update status text
-                whatsappStatusText.textContent = 'WhatsApp Terhubung';
-                whatsappStatusTime.textContent = 'Terhubung pada: ' + new Date().toLocaleTimeString();
-
-                // Update main status message
-                statusMessage.innerHTML =
-                    '<span class="success-text"><i class="ti ti-check me-2"></i>WhatsApp berhasil terhubung!</span>';
-                statusMessage.className = 'success-text';
-
-                // Show success icon and hide QR code
-                document.querySelector('.qrcode').classList.add('hidden');
-                successIconContainer.classList.add('show');
-            } else {
-                // Update status icon
-                whatsappStatusIcon.className = 'whatsapp-status-icon disconnected';
-                whatsappStatusIcon.innerHTML = '<i class="ti ti-brand-whatsapp"></i>';
-
-                // Update status text
-                whatsappStatusText.textContent = 'WhatsApp Terputus';
-                whatsappStatusTime.textContent = 'Terakhir terhubung: ' +
-                    (connectionState.lastConnected ? new Date(connectionState.lastConnected).toLocaleTimeString() :
-                        'Belum pernah');
-
-                // Update main status message
-                statusMessage.textContent = 'Menghubungkan ke server...';
-                statusMessage.className = 'loading-text';
-
-                // Hide success icon and show QR code
-                successIconContainer.classList.remove('show');
-                document.querySelector('.qrcode').classList.remove('hidden');
-
-                // Show loading state
-                showLoading();
-            }
-        }
-
-        // Socket event handlers
-        socket.on('whatsapp_status', (status) => {
-            console.log('WhatsApp status event:', status);
-            connectionState.isWhatsAppConnected = status.connected;
-            connectionState.lastCheck = Date.now();
-
-            if (status.connected) {
-                connectionState.lastConnected = Date.now();
-            }
-
-            updateWhatsAppStatus(status.connected);
-
-            if (!status.connected) {
-                socket.emit('request_qr');
-            }
-        });
-
-        socket.on("log", log => {
-            console.log('Server log:', log);
-            if (log.includes('terhubung')) {
-                connectionState.isWhatsAppConnected = true;
-                connectionState.lastConnected = Date.now();
-                updateWhatsAppStatus(true);
-            } else if (log.includes('terputus') || log.includes('disconnected') || log.includes('logout')) {
-                connectionState.isWhatsAppConnected = false;
-                updateWhatsAppStatus(false);
-                socket.emit('request_qr');
-            }
-        });
-
-        socket.on('whatsapp_disconnected', () => {
-            console.log('WhatsApp disconnected event');
-            connectionState.isWhatsAppConnected = false;
-            updateWhatsAppStatus(false);
-            socket.emit('request_qr');
-        });
-
-        // Start status polling
-        function startStatusPolling() {
-            if (connectionState.pollingInterval) {
-                clearInterval(connectionState.pollingInterval);
-            }
-
-            // Check immediately
-            socket.emit('check_whatsapp_status');
-
-            connectionState.pollingInterval = setInterval(() => {
-                if (connectionState.isConnected) {
-                    socket.emit('check_whatsapp_status');
+            // === QR Code ===
+            async function loadQR() {
+                try {
+                    const res = await fetch(`${API_BASE}/qr/status`);
+                    const data = await res.json();
+                    document.getElementById('qr-status').textContent = `Status: ${data.status}`;
+                    const qrContainer = document.getElementById('qr-container');
+                    if (data.status && data.status.toLowerCase() === 'connected') {
+                        qrContainer.innerHTML = `
+            <div class=\"wa-pulse-anim\">
+              <div class=\"wa-pulse\">
+                <i class=\"ti ti-brand-whatsapp"></i>
+              </div>
+              <div class=\"wa-pulse-text\">WhatsApp Terhubung</div>
+            </div>`;
+                    } else {
+                        qrContainer.innerHTML = data.qr_svg ? data.qr_svg :
+                            '<span class="text-gray-400">Tidak ada QR tersedia.</span>';
+                    }
+                } catch (e) {
+                    document.getElementById('qr-status').textContent = 'Gagal mengambil QR: ' + (e.message ||
+                    e);
                 }
-            }, 2000);
-        }
-
-        // Connection event handlers
-        socket.on('connect', () => {
-            console.log('Socket connected');
-            connectionState.isConnected = true;
-            connectionState.reconnectAttempts = 0;
-            updateConnectionStatus('connected');
-            startStatusPolling();
-        });
-
-        socket.on('disconnect', (reason) => {
-            console.log('Socket disconnected:', reason);
-            connectionState.isConnected = false;
-            connectionState.isWhatsAppConnected = false;
-            updateConnectionStatus('disconnected');
-            updateWhatsAppStatus(false);
-            showRetryButton();
-            startAutoReconnect();
-        });
-
-        // Initialize with disconnected state
-        updateWhatsAppStatus(false);
-        startStatusPolling();
-
-        // Auto-reconnect function
-        function startAutoReconnect() {
-            if (connectionState.reconnectionInterval) {
-                clearInterval(connectionState.reconnectionInterval);
             }
+            loadQR();
+            setInterval(loadQR, 3000);
+            document.getElementById('btn-refresh-qr').onclick = loadQR;
 
-            connectionState.reconnectionInterval = setInterval(() => {
-                if (!connectionState.isConnected && connectionState.reconnectAttempts < connectionState
-                    .maxReconnectAttempts) {
-                    console.log('Attempting auto-reconnect...');
-                    connectionState.reconnectAttempts++;
-                    socket.connect();
-                } else if (connectionState.reconnectAttempts >= connectionState.maxReconnectAttempts) {
-                    clearInterval(connectionState.reconnectionInterval);
-                    showRetryButton();
+            // === Monitoring Queue ===
+            async function loadQueue() {
+                try {
+                    const res = await fetch(`${API_BASE}/queue/status`);
+                    const data = await res.json();
+                    document.getElementById('queue-status').textContent =
+                        `Queue: ${data.queue_length} pesan, Estimasi delay: ${data.est_delay_sec}s`;
+                    const tbody = document.getElementById('queue-table');
+                    tbody.innerHTML = '';
+                    (data.queue_details || []).forEach((msg, i) => {
+                        const countdown = Math.max(0, (i + 1) * (data.interval_ms || 1000) / 1000);
+                        tbody.innerHTML += `<tr>
+            <td class="px-2 py-1">${i + 1}</td>
+            <td class="px-2 py-1">${msg.jid}</td>
+            <td class="px-2 py-1">${msg.text || ''}</td>
+            <td class="px-2 py-1">${msg.enqueued_at ? new Date(msg.enqueued_at).toLocaleTimeString() : ''}</td>
+            <td class="px-2 py-1"><span>${countdown}</span> detik</td>
+          </tr>`;
+                    });
+                    // In-flight message
+                    if (data.in_flight) {
+                        document.getElementById('inflight-message').innerHTML =
+                            `<b>In-flight:</b> ${data.in_flight.jid} - ${data.in_flight.text} (Sejak: ${data.in_flight.started_at ? new Date(data.in_flight.started_at).toLocaleTimeString() : ''})`;
+                    } else {
+                        document.getElementById('inflight-message').textContent = '';
+                    }
+                } catch (e) {
+                    document.getElementById('queue-status').textContent = 'Gagal mengambil data queue: ' + (e
+                        .message || e);
                 }
-            }, 5000); // Try every 5 seconds
-        }
+            }
+            loadQueue();
+            setInterval(loadQueue, 3000);
 
-        // Update connection status indicator with debounce
-        let statusUpdateTimeout;
-
-        function updateConnectionStatus(status) {
-            clearTimeout(statusUpdateTimeout);
-            statusUpdateTimeout = setTimeout(() => {
-                connectionStatus.className = 'connection-status ' + status;
-            }, 100);
-        }
-
-        // Show retry button with improved UX
-        function showRetryButton() {
-            retryButton.style.display = 'block';
-            retryButton.onclick = () => {
-                retryButton.style.display = 'none';
-                connectionState.reconnectAttempts = 0;
-                showLoading();
-                socket.connect();
-                startAutoReconnect();
+            // === Form Kirim Pesan ===
+            document.getElementById('send-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const to = document.getElementById('to').value.trim();
+                const text = document.getElementById('text').value.trim();
+                try {
+                    const res = await fetch(`${API_BASE}/send-message`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': API_KEY
+                        },
+                        body: JSON.stringify({
+                            to,
+                            text
+                        })
+                    });
+                    const data = await res.json();
+                    document.getElementById('send-result').textContent = data.success ?
+                        `✅ Pesan dikirim (queued: ${data.queued})` : `❌ ${data.error || 'Gagal mengirim'}`;
+                    if (data.success) {
+                        document.getElementById('send-form').reset();
+                    }
+                } catch (e) {
+                    document.getElementById('send-result').textContent = '❌ Gagal mengirim: ' + (e
+                        .message || e);
+                }
             };
-        }
 
-        // Show loading state with fade effect
-        function showLoading() {
-            loadingContainer.style.display = 'flex';
-            loadingContainer.style.opacity = '1';
-            qrcode.classList.remove('loaded');
-        }
-
-        // Hide loading state with fade effect
-        function hideLoading() {
-            loadingContainer.style.opacity = '0';
-            setTimeout(() => {
-                loadingContainer.style.display = 'none';
-            }, 300);
-            qrcode.classList.add('loaded');
-        }
-
-        // Handle QR code updates with improved caching and error handling
-        function handleQRUpdate(src) {
-            if (connectionState.isWhatsAppConnected) {
-                return; // Don't update QR if WhatsApp is already connected
-            }
-
-            if (!src) {
-                console.error('Received empty QR code source');
-                statusMessage.textContent = 'Error: QR Code kosong';
-                statusMessage.className = 'error-text';
-                return;
-            }
-
-            // Show loading state
-            showLoading();
-
-            // Use requestAnimationFrame for smooth updates
-            requestAnimationFrame(() => {
-                if (src.startsWith('data:image')) {
-                    qrcode.setAttribute("src", src);
-                } else {
-                    const qrSrc = src.startsWith('http') ? src :
-                        `${baseUrl}/${src.replace(/^\.\//, '')}`;
-                    qrcode.setAttribute("src", qrSrc);
+            // === Log Pengiriman Pesan WhatsApp ===
+            async function loadWAMessages(start = '', end = '') {
+                try {
+                    let url = `${API_BASE}/api/messages`;
+                    const params = [];
+                    if (start) params.push(`start=${start}`);
+                    if (end) params.push(`end=${end}`);
+                    if (params.length) url += '?' + params.join('&');
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const tbody = document.getElementById('wamessages-tbody');
+                    tbody.innerHTML = '';
+                    data.forEach(msg => {
+                        tbody.innerHTML += `<tr>
+            <td class="px-2 py-1">${msg.id}</td>
+            <td class="px-2 py-1">${msg.sender || '-'}</td>
+            <td class="px-2 py-1">${msg.receiver || '-'}</td>
+            <td class="px-2 py-1">${msg.message || ''}</td>
+            <td class="px-2 py-1">${msg.status ? '<span class=\'text-green-600\'>Berhasil</span>' : '<span class=\'text-red-600\'>Gagal</span>'}</td>
+            <td class="px-2 py-1">${msg.error_message || ''}</td>
+            <td class="px-2 py-1">${msg.sent_at ? new Date(msg.sent_at).toLocaleString() : '-'}</td>
+          </tr>`;
+                    });
+                } catch (e) {
+                    document.getElementById('wamessages-tbody').innerHTML =
+                        `<tr><td colspan="7">Gagal mengambil data pesan: ${e.message || e}</td></tr>`;
                 }
-                qrcode.setAttribute("alt", "qrcode");
-
-                // Remove loading state after image loads
-                qrcode.onload = () => {
-                    hideLoading();
-                    statusMessage.textContent = 'QR Code siap untuk di-scan!';
-                    statusMessage.className = 'success-text';
-                };
-
-                // Handle image load error
-                qrcode.onerror = () => {
-                    hideLoading();
-                    statusMessage.textContent = 'Error: Gagal memuat QR Code';
-                    statusMessage.className = 'error-text';
-                    showRetryButton();
-                };
-            });
-        }
-
-        // QR code event handlers with immediate updates
-        socket.on("qr", handleQRUpdate);
-
-        socket.on("qrstatus", src => {
-            if (connectionState.isWhatsAppConnected) {
-                return;
             }
 
-            console.log('Received QR status update:', src);
-            if (src.startsWith('data:image')) {
-                qrcode.setAttribute("src", src);
-            } else {
-                const statusSrc = src.startsWith('http') ? src :
-                    `${baseUrl}/${src.replace(/^\.\//, '')}`;
-                qrcode.setAttribute("src", statusSrc);
-            }
-            qrcode.setAttribute("alt", "loading");
-            statusMessage.textContent = 'Memperbarui QR Code...';
-            statusMessage.className = 'loading-text';
+            // Form filter tanggal
+            const filterForm = document.getElementById('filter-form');
+            const filterStart = document.getElementById('filter-start');
+            const filterEnd = document.getElementById('filter-end');
+            let filterInterval = null;
+
+            filterForm.onsubmit = function(e) {
+                e.preventDefault();
+                const start = filterStart.value;
+                const end = filterEnd.value;
+                loadWAMessages(start, end);
+                // Hentikan auto-refresh saat filter aktif
+                if (filterInterval) clearInterval(filterInterval);
+            };
+            document.getElementById('filter-reset').onclick = function() {
+                filterStart.value = '';
+                filterEnd.value = '';
+                loadWAMessages();
+                // Aktifkan kembali auto-refresh
+                if (filterInterval) clearInterval(filterInterval);
+                filterInterval = setInterval(() => loadWAMessages(), 5000);
+            };
+
+            // Load pertama kali dan auto-refresh tiap 5 detik (jika tidak sedang filter)
+            loadWAMessages();
+            filterInterval = setInterval(() => loadWAMessages(), 5000);
         });
-
-        // Error handling
-        socket.on('error', (error) => {
-            console.error('Socket error:', error);
-            statusMessage.textContent = 'Error: ' + (error.message || 'Terjadi kesalahan');
-            statusMessage.className = 'error-text';
-            showRetryButton();
-        });
-
-        // Preload loader image with error handling
-        const loaderImage = new Image();
-        loaderImage.onload = () => {
-            console.log('Loader image preloaded successfully');
-        };
-        loaderImage.onerror = () => {
-            console.error('Failed to preload loader image');
-        };
-        loaderImage.src = `${baseUrl}/assets/loader.gif`;
-
-        // Initialize loading state
-        showLoading();
-
-        // Start auto-reconnect if needed
-        startAutoReconnect();
     </script>
-@endpush
+    </body>
+
+    </html>

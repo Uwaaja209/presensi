@@ -2,6 +2,7 @@
 
 namespace App\Charts;
 
+use App\Models\Karyawan;
 use ArielMejiaDev\LarapexCharts\LarapexChart;
 use Illuminate\Support\Facades\DB;
 
@@ -14,14 +15,24 @@ class StatusKaryawanChart
         $this->chart = $chart;
     }
 
-    public function build(): \ArielMejiaDev\LarapexCharts\PieChart
+    public function build($request = null): \ArielMejiaDev\LarapexCharts\PieChart
     {
         // Ambil jumlah karyawan berdasarkan status (T, K, O)
-        $rawData = DB::table('karyawan')
-            ->select('status_karyawan', DB::raw('count(*) as total'))
-            ->groupBy('status_karyawan')
-            ->pluck('total', 'status_karyawan')
-            ->toArray();
+
+        $query = Karyawan::query();
+        $query->select('status_karyawan', DB::raw('count(*) as total'));
+        $query->groupBy('status_karyawan');
+        if (!empty($request->kode_cabang)) {
+            $query->where('karyawan.kode_cabang', $request->kode_cabang);
+        }
+
+        if (!empty($request->kode_dept)) {
+            $query->where('karyawan.kode_dept', $request->kode_dept);
+        }
+
+        $rawData = $query->pluck('total', 'status_karyawan')->toArray();
+
+
 
         // Mapping status singkatan ke nama lengkap
         $statusLabels = [

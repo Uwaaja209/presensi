@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('titlepage', 'Laporan Presensi')
+@section('titlepage', 'Laporan Presensi & Gaji')
 
 @section('content')
 @section('navigasi')
-    <span>Laporan Presensi</span>
+    <span>Laporan Presensi & Gaji</span>
 @endsection
 <div class="row">
-    <div class="col-lg-12 col-sm-12 col-xs-12">
+    <div class="col-lg-6 col-sm-12 col-xs-12">
         <div class="card">
             <div class="card-body">
                 <form action="{{ route('laporan.cetakpresensi') }}" method="POST" target="_blank" id="formPresensi">
@@ -37,6 +37,13 @@
                             <option value="">Periode Laporan</option>
                             <option value="1" selected>Periode Gaji</option>
                             <option value="2">Bulan Berjalan</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <select name="format_laporan" id="format_laporan" class="form-select">
+                            <option value="">Format Laporan</option>
+                            <option value="1" selected>Laporan Presensi</option>
+                            <option value="2">Laporan Gaji</option>
                         </select>
                     </div>
                     {{-- <div class="form-group mb-3">
@@ -154,6 +161,7 @@
 
         $("#formPresensi").submit(function(e) {
             const periode_laporan = $("#periode_laporan").val();
+            const format_laporan = $("#format_laporan").val();
             const bulan = $(this).find("#bulan").val();
             const tahun = $(this).find("#tahun").val();
             if (periode_laporan == "") {
@@ -164,6 +172,17 @@
                     showConfirmButton: true,
                     didClose: () => {
                         $("#periode_laporan").focus();
+                    }
+                });
+                return false;
+            } else if (format_laporan == "") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Oops...',
+                    text: 'Format Laporan harus diisi!',
+                    showConfirmButton: true,
+                    didClose: () => {
+                        $("#format_laporan").focus();
                     }
                 });
                 return false;
