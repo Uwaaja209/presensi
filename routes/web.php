@@ -204,6 +204,7 @@ Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
     Route::controller(PresensiController::class)->group(function () {
         Route::get('/presensi', 'index')->name('presensi.index')->can('presensi.index');
         Route::get('/presensi/histori', 'histori')->name('presensi.histori')->can('presensi.index');
+        Route::get('presensi/jadwalkerja', [PresensiController::class, 'jadwalKerja'])->name('presensi.jadwalkerja');
         Route::get('/presensi/create', 'create')->name('presensi.create')->can('presensi.create');
         Route::post('/presensi', 'store')->name('presensi.store')->can('presensi.create');
         Route::post('/presensi/edit', 'edit')->name('presensi.edit')->can('presensi.edit');
@@ -214,7 +215,7 @@ Route::get('/users/data', [UserController::class, 'data'])->name('users.data');
 
         Route::post('/presensi/getdatamesin', 'getdatamesin')->name('presensi.getdatamesin');
         Route::post('/presensi/{pin}/{status_scan}/updatefrommachine', 'updatefrommachine')->name('presensi.updatefrommachine');
-    
+       
     });
 
     Route::controller(JamkerjabydeptController::class)->group(function () {

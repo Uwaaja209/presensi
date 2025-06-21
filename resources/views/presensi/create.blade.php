@@ -233,28 +233,189 @@
             margin-right: 5px;
         }
 
-        /* Style untuk jam digital */
-        .jam-digital-malasngoding {
-            background-color: rgba(255, 255, 255, 0.7);
-            position: absolute;
-            top: 55px;
-            /* Di bawah header */
-            right: 15px;
-            /* Menambah margin kanan */
-            z-index: 20;
-            width: 170px;
-            border-radius: 10px;
-            padding: 5px;
-            backdrop-filter: blur(5px);
-        }
+        /* TAMBAHKAN CSS BARU INI */
+.info-card-presensi {
+    position: absolute;
+    top: 55px;
+    left: 75%;
+    right: 15px;
+    z-index: 20;
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
 
-        .jam-digital-malasngoding p {
-            color:rgb(0, 0, 0);
-            font-size: 16px;
-            text-align: left;
-            margin-top: 0;
-            margin-bottom: 0;
-        }
+.info-card-presensi .header-info {
+    text-align: center;
+}
+
+.info-card-presensi .time-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.info-card-presensi .time-section ion-icon {
+    font-size: 28px;
+    color: #333;
+}
+
+#jam-display {
+    font-size: 38px;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+    line-height: 1;
+}
+
+#tanggal-display {
+    font-size: 16px;
+    color: #6c757d;
+    margin: 5px 0 0 0;
+}
+/* Aturan untuk layar dengan lebar maksimum 768px (Tablet dan Ponsel) */
+@media (max-width: 768px) {
+    /* ================================================================== */
+    /* BLOK CSS MEDIA QUERY YANG DIPERBARUI UNTUK MOBILE                 */
+    /* ================================================================== */
+    
+    /* 1. Panel Bawah (Bottom Sheet) */
+    .bottom-sheet {
+        position: fixed; /* Menggunakan fixed agar selalu di bawah layar */
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 20;
+        background: #ffffff;
+        border-top-left-radius: 24px;
+        border-top-right-radius: 24px;
+        padding: 20px 20px 85px 20px; /* Padding bawah 85px untuk memberi ruang bagi tombol "Masuk" */
+        box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease-out;
+    }
+
+    /* 2. Atur Ulang Peta agar tidak 'melayang' */
+    #map {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        width: 100% !important;
+        height: 120px !important;
+        margin-bottom: 20px;
+        border-radius: 12px;
+    }
+
+    /* 3. Atur Ulang Kartu Info agar tidak 'melayang' */
+    .info-card-presensi {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background-color: transparent !important;
+        border-radius: 0 !important;
+    }
+}
+/* Style untuk teks verifikasi wajah (menggunakan ID lama) */
+#face-verification-text {
+    margin-top: 8px !important;
+    font-weight: 500;
+    font-size: 13px;
+}
+#face-verification-text.verified {
+    color: #28a745; /* Hijau */
+}
+#face-verification-text.unverified {
+    color: #dc3545; /* Merah */
+}
+
+.info-card-presensi .shift-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 15px 0;
+}
+
+.info-card-presensi .shift-info .shift-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.info-card-presensi .shift-info .shift-hours {
+    font-size: 14px;
+    color: #888;
+    margin: 4px 0 0 0;
+}
+
+.check-in-button-card {
+    background-color: #465985;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.check-in-button-card:hover {
+    background-color: #3b4a6b;
+    color: white;
+}
+
+.check-out-button-card {
+    background-color:rgb(133, 70, 70);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.check-out-button-card:hover {
+    background-color:rgb(107, 59, 59);
+    color: white;
+}
+
+.info-card-presensi .links-section {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.additional-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: #465985;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.additional-link ion-icon {
+    font-size: 22px;
+}
 
         /* Style modern untuk box deteksi wajah */
         .face-detection-box {
@@ -300,43 +461,92 @@
         <div class="row" style="margin-top: 0; height: 100%;">
             <div class="col" id="facedetection">
                 <div class="webcam-capture"></div>
-                <div id="map">
+                <!-- <div id="map">
                     <div id="map-loading">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
                         </div>
                         <div class="mt-2">Memuat peta...</div>
                     </div>
+                </div> -->
+                <div class="bottom-sheet">
+                {{-- Peta sekarang ada di dalam bottom-sheet --}}
+                <div id="map" style="height: 120px">
+                    <div id="map-loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading.</span>
+                        </div>
+                        <div class="mt-2">Memuat peta...</div>
+                    </div>
                 </div>
-                <div class="jam-digital-malasngoding">
+
+                {{-- Kartu Info sekarang juga ada di dalam bottom-sheet --}}
+                <div class="info-card-presensi">
+                    {{-- Bagian Jam dan Tanggal --}}
+                    <div class="header-info">
+                        <div class="time-section">
+                            <!-- <ion-icon name="time-outline"></ion-icon> -->
+                            <h1 id="jam-display"></h1>
+                        </div>
+                        <p id="tanggal-display"></p>
+                        <p id="face-verification-text" class="unverified"></p>
+                    </div>
+
+                    {{-- Bagian Jadwal & Tombol Aksi --}}
+                    <div class="shift-section">
+                        <div class="shift-info">
+                            <p class="shift-name">{{ $jam_kerja->nama_jam_kerja }}</p>
+                            <p class="shift-hours">{{ date('H:i', strtotime($jam_kerja->jam_masuk)) }} - {{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}</p>
+                        </div>
+                        <!-- @if (!$presensi || $presensi->jam_in === null)
+                        <a href="#" class="check-in-button-card" onclick="document.getElementById('absenmasuk').click(); return false;">
+                            Check-in <ion-icon name="chevron-forward-outline"></ion-icon>
+                        </a>
+                        @else
+                        <a href="#" class="check-in-button-card" style="background-color: #6c757d;" onclick="document.getElementById('absenpulang').click(); return false;">
+                            Check-out <ion-icon name="chevron-forward-outline"></ion-icon>
+                        </a>
+                        @endif -->
+
+                        @if (!$presensi || $presensi->jam_in === null)
+                        {{-- Jika tidak ada data presensi untuk hari ini, atau jam_in masih null, tampilkan tombol Masuk --}}
+                        <button class="btn check-in-button-card" id="absenmasuk" statuspresensi="masuk">
+                            <span style="font-size:14px">Masuk</span>
+                        </button>
+                         @elseif ($presensi->jam_in !== null && $presensi->jam_out === null)
+                        {{-- Jika sudah absen masuk (jam_in ada) tapi belum absen pulang (jam_out null), tampilkan tombol Pulang --}}
+                        <button class="btn check-out-button-card" id="absenpulang" statuspresensi="pulang">
+                            <span style="font-size:14px">Pulang</span>
+                        </button>
+                       
+                        @endif
+                    </div>
+
+                    {{-- Bagian Link Tambahan --}}
+                    <div class="links-section">
+                        <a href="{{ route('presensi.histori') }}" class="additional-link">
+                            <ion-icon name="document-text-outline"></ion-icon>
+                            <span>Riwayat Kehadiran</span>
+                        </a>
+
+                        <a href="{{ route('presensi.jadwalkerja') }}" class="additional-link">
+                            <ion-icon name="calendar-outline"></ion-icon>
+                            <span>Jadwal Kerja</span>
+                        </a>
+                    </div>
+            </div>
+        </div>
+                <!-- <div class="jam-digital-malasngoding">
                     <p>{{ DateToIndo(date('Y-m-d')) }}</p>
                     <p id="jam"></p>
                     <p>{{ $jam_kerja->nama_jam_kerja }} </p>
                     <p style="display: flex; justify-content:space-between">
-                        <!-- <span> Masuk</span> -->
-                        <span>{{ date('H:i', strtotime($jam_kerja->jam_masuk)) }} - {{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}</span>
+                    <span>{{ date('H:i', strtotime($jam_kerja->jam_masuk)) }} - {{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}</span>
                     </p>
-                    <!-- <p style="display: flex; justify-content:space-between">
-                        <span> Pulang</span>
-                        <span>{{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}</span>
-                    </p> -->
+                   
                     <span id="face-verification-text"></span>
-                </div>
-                <div class="scan-buttons">
-                    @if (!$presensi || $presensi->jam_in === null)
-                        {{-- Jika tidak ada data presensi untuk hari ini, atau jam_in masih null, tampilkan tombol Masuk --}}
-                        <button class="btn btn-success bg-primary scan-button" id="absenmasuk" statuspresensi="masuk">
-                            <!-- <ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon> -->
-                            <span style="font-size:14px">Masuk</span>
-                        </button>
-                    @elseif ($presensi->jam_in !== null && $presensi->jam_out === null)
-                        {{-- Jika sudah absen masuk (jam_in ada) tapi belum absen pulang (jam_out null), tampilkan tombol Pulang --}}
-                        <button class="btn btn-danger scan-button" id="absenpulang" statuspresensi="pulang">
-                            <!-- <ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon> -->
-                            <span style="font-size:14px">Pulang</span>
-                        </button>
-                    @endif
-                </div>
+                </div> -->
+               
                <div id="listcabang" style="display: none;">
                     <div class="select-wrapper">
                         <select name="cabang" id="cabang" class="form-control">
@@ -348,7 +558,19 @@
                     </div>
                 </div>
                 
-              
+              <!-- <div class="scan-buttons">
+                    @if (!$presensi || $presensi->jam_in === null)
+                        {{-- Jika tidak ada data presensi untuk hari ini, atau jam_in masih null, tampilkan tombol Masuk --}}
+                        <button class="btn btn-success bg-primary scan-button" id="absenmasuk" statuspresensi="masuk">
+                            <span style="font-size:14px">Masuk</span>
+                        </button>
+                    @elseif ($presensi->jam_in !== null && $presensi->jam_out === null)
+                        {{-- Jika sudah absen masuk (jam_in ada) tapi belum absen pulang (jam_out null), tampilkan tombol Pulang --}}
+                        <button class="btn btn-danger scan-button" id="absenpulang" statuspresensi="pulang">
+                            <span style="font-size:14px">Pulang</span>
+                        </button>
+                    @endif
+                </div> -->
             </div>
         </div>
     </div>
@@ -386,26 +608,35 @@
         }
 
         // Fungsi untuk menampilkan waktu secara real-time
-        function jam() {
-            // Mengambil elemen HTML dengan id 'jam'
-            var e = document.getElementById('jam'),
-                // Membuat objek Date untuk mendapatkan waktu saat ini
-                d = new Date(),
-                // Variabel untuk menampung jam, menit, dan detik
-                h, m, s;
-            // Mengambil jam dari objek Date
-            h = d.getHours();
-            // Mengambil menit dari objek Date dan menambahkan '0' di depan jika kurang dari 10
-            m = set(d.getMinutes());
-            // Mengambil detik dari objek Date dan menambahkan '0' di depan jika kurang dari 10
-            s = set(d.getSeconds());
+       function jam() {
+    var e = document.getElementById('jam-display'),
+        tanggal_el = document.getElementById('tanggal-display'),
+        d = new Date(),
+        h, m, s;
+    
+    h = d.getHours();
+    m = set(d.getMinutes());
+    s = set(d.getSeconds());
 
-            // Menampilkan waktu dalam format HH:MM:SS
-            e.innerHTML = h + ':' + m + ':' + s;
+    // Update tampilan jam di elemen baru
+    if(e) {
+        e.innerHTML = h + ':' + m + ':' + s;
+    }
 
-            // Mengatur waktu untuk memanggil fungsi jam() lagi setelah 1 detik
-            setTimeout('jam()', 1000);
-        }
+    // Update tampilan tanggal dengan format Indonesia
+    const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+    if(tanggal_el){
+        tanggal_el.innerHTML = d.toLocaleDateString('id-ID', options);
+    }
+    
+    setTimeout(jam, 1000);
+}
+
+// Fungsi ini tidak perlu diubah
+function set(e) {
+    e = e < 10 ? '0' + e : e;
+    return e;
+}
 
         // Fungsi untuk menambahkan '0' di depan angka jika kurang dari 10
         function set(e) {
@@ -919,7 +1150,7 @@
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
                 $("#absenmasuk").html(
-                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading...</span></div> <span style="font-size:16px">Loading...</span>'
+                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading.</span></div> <span style="font-size:16px">Loading.</span>'
 
                 );
                 let status = '1';
@@ -938,7 +1169,7 @@
                             $("#absenmasuk").prop('disabled', false);
                             $("#absenpulang").prop('disabled', false);
                             $("#absenmasuk").html(
-                                '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Masuk</span>'
+                                '<span style="font-size:14px">Masuk</span>'
                             );
                         }
                     })
@@ -987,7 +1218,7 @@
                                     $("#absenmasuk").prop('disabled', false);
                                     $("#absenpulang").prop('disabled', false);
                                     $("#absenmasuk").html(
-                                        '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Masuk</span>'
+                                        '<span style="font-size:14px">Masuk</span>'
                                     );
                                 }
 
@@ -1003,7 +1234,7 @@
                 $("#absenmasuk").prop('disabled', true);
                 $("#absenpulang").prop('disabled', true);
                 $("#absenpulang").html(
-                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading...</span></div> <span style="font-size:16px">Loading...</span>'
+                    '<div class="spinner-border text-light mr-2" role="status"><span class="sr-only">Loading.</span></div> <span style="font-size:16px">Loading.</span>'
 
                 );
                 let status = '2';
@@ -1019,7 +1250,7 @@
                             $("#absenmasuk").prop('disabled', false);
                             $("#absenpulang").prop('disabled', false);
                             $("#absenmasuk").html(
-                                '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Masuk</span>'
+                                '<span style="font-size:14px">Masuk</span>'
                             );
                         }
                     })
@@ -1068,7 +1299,7 @@
                                     $("#absenmasuk").prop('disabled', false);
                                     $("#absenpulang").prop('disabled', false);
                                     $("#absenpulang").html(
-                                        '<ion-icon name="finger-print-outline" style="font-size: 24px !important"></ion-icon><span style="font-size:14px">Pulang</span>'
+                                        '<span style="font-size:14px">Pulang</span>'
                                     );
                                 }
 
