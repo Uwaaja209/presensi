@@ -477,13 +477,39 @@ class KaryawanController extends Controller
         return response()->json($karyawan);
     }
 
-    public function idcard($nik)
-    {
-        $nik = Crypt::decrypt($nik);
-        $karyawan = Karyawan::where('nik', $nik)->first();
-        $data['karyawan'] = $karyawan;
-        $generalsetting = Pengaturanumum::where('id', 1)->first();
-        $data['generalsetting'] = $generalsetting;
-        return view('datamaster.karyawan.idcard', $data);
-    }
+  public function idcard($nik)
+{
+    $nik = Crypt::decrypt($nik);
+
+    // Mengambil data karyawan sekaligus dengan nama jabatannya
+    $karyawan = Karyawan::select('karyawan.*', 'jabatan.nama_jabatan')
+        ->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
+        ->where('karyawan.nik', $nik)
+        ->first();
+
+    $data['karyawan'] = $karyawan;
+    $generalsetting = Pengaturanumum::where('id', 1)->first();
+    $data['generalsetting'] = $generalsetting;
+    
+    // Hapus dd($data) jika sudah tidak diperlukan untuk melihat hasilnya di view
+    // dd($data); 
+    
+    return view('datamaster.karyawan.idcard', $data);
+}
+
+public function idcardTemplate($nik)
+{
+    $nik = Crypt::decrypt($nik);
+    $karyawan = Karyawan::select('karyawan.*', 'jabatan.nama_jabatan')
+        ->join('jabatan', 'karyawan.kode_jabatan', '=', 'jabatan.kode_jabatan')
+        ->where('karyawan.nik', $nik)
+        ->first();
+
+    $data['karyawan'] = $karyawan;
+    $generalsetting = Pengaturanumum::where('id', 1)->first();
+    $data['generalsetting'] = $generalsetting;
+    
+    // Fungsi ini akan memanggil view template yang terisolasi
+    return view('datamaster.karyawan.idcard_template', $data);
+}
 }
