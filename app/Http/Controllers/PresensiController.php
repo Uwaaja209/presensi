@@ -286,6 +286,7 @@ class PresensiController extends Controller
                                 'status' => 'h'
                             ]);
                         }
+                        //komen
                         Storage::put($file, $image_base64);
 
                         if ($karyawan->no_hp != null && $karyawan->no_hp != "") {
