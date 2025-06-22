@@ -2,12 +2,12 @@
 
  <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
      <div class="app-brand demo">
-         <a href="index.html" class="app-brand-link">
+         <a href="#" class="app-brand-link">
              <span class="app-brand-logo demo">
-                 <i class="ti ti-fingerprint" style="font-size:32px !important"></i>
-                 {{-- <img src="{{ asset('assets/img/logo/hibah.png') }}" alt="" width="64"> --}}
+                 <!-- <i class="ti ti-fingerprint" style="font-size:32px !important"></i> -->
+                 <img src="{{ asset('assets/img/logo/klinikputih.png') }}" alt="" width="45">
              </span>
-             <span class="app-brand-text demo menu-text fw-bold"><i><b>e</b></i>PresensiV2</span>
+             <span class="app-brand-text demo menu-text fw-bold"><i><b>DR-</b></i>Presnsi</span>
          </a>
 
          <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
