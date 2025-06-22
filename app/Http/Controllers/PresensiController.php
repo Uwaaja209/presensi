@@ -571,6 +571,62 @@ class PresensiController extends Controller
         return view('presensi.histori', $data);
     }
 
+    public function jadwalKerja(Request $request)
+{
+    // 1. Tentukan Bulan dan Tahun yang akan ditampilkan, default ke bulan ini
+    $bulan = $request->bulan ?? date('m');
+    $tahun = $request->tahun ?? date('Y');
+
+    // 2. Dapatkan data Karyawan yang sedang login dengan aman
+    $user = auth()->user();
+    if (!$user) { return redirect('/login'); }
+
+    $userkaryawan = Userkaryawan::where('id_user', $user->id)->first();
+    if (!$userkaryawan) { return redirect('/dashboard')->with('error', 'Data karyawan Anda tidak ditemukan.'); }
+
+    $karyawan = Karyawan::where('nik', $userkaryawan->nik)->first();
+    if (!$karyawan) { return redirect('/dashboard')->with('error', 'Detail data karyawan tidak valid.'); }
+
+    // 3. Ambil semua jenis data jadwal & libur untuk bulan yang ditampilkan
+    // Jadwal Mingguan Pribadi
+    $jadwalMingguan = Setjamkerjabyday::join('presensi_jamkerja', 'presensi_jamkerja_byday.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+        ->where('nik', $karyawan->nik)->get()->keyBy('hari');
+
+    // Jadwal Mingguan Departemen (sebagai fallback)
+    $jadwalDeptMingguan = Detailsetjamkerjabydept::join('presensi_jamkerja_bydept', 'presensi_jamkerja_bydept_detail.kode_jk_dept', '=', 'presensi_jamkerja_bydept.kode_jk_dept')
+        ->join('presensi_jamkerja', 'presensi_jamkerja_bydept_detail.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+        ->where('kode_dept', $karyawan->kode_dept)->where('kode_cabang', $karyawan->kode_cabang)->get()->keyBy('hari');
+
+    // Jadwal Khusus per Tanggal
+    $jadwalByDate = Setjamkerjabydate::join('presensi_jamkerja', 'presensi_jamkerja_bydate.kode_jam_kerja', '=', 'presensi_jamkerja.kode_jam_kerja')
+        ->where('nik', $karyawan->nik)
+        ->whereYear('tanggal', $tahun)->whereMonth('tanggal', $bulan)->get()->keyBy('tanggal');
+
+    // Data Hari Libur Nasional
+    $hariLibur = Harilibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $bulan)->get()->keyBy('tanggal');
+
+    // Data Libur Khusus untuk Karyawan ini
+    $liburKhususKaryawan = Detailharilibur::join('hari_libur', 'hari_libur_detail.kode_libur', '=', 'hari_libur.kode_libur')
+        ->where('nik', $karyawan->nik)
+        ->whereYear('hari_libur.tanggal', $tahun)
+        ->whereMonth('hari_libur.tanggal', $bulan)
+        ->get()->keyBy('tanggal');
+
+    // 4. Siapkan semua data yang akan dikirim ke view
+    $data['bulan'] = $bulan;
+    $data['tahun'] = $tahun;
+    $data['nama_bulan'] = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    $data['nama_karyawan'] = $karyawan->nama_karyawan;
+
+    // Kirim semua data jadwal dan libur ke view
+    $data['jadwalMingguan'] = $jadwalMingguan;
+    $data['jadwalDeptMingguan'] = $jadwalDeptMingguan;
+    $data['jadwalByDate'] = $jadwalByDate;
+    $data['hariLibur'] = $hariLibur;
+    $data['liburKhususKaryawan'] = $liburKhususKaryawan;
+// dd($data);
+    return view('presensi.jadwalkerja', $data);
+}
 
     public function updatefrommachine(Request $request, $pin, $status_scan)
     {

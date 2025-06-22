@@ -536,16 +536,7 @@
                     </div>
             </div>
         </div>
-                <!-- <div class="jam-digital-malasngoding">
-                    <p>{{ DateToIndo(date('Y-m-d')) }}</p>
-                    <p id="jam"></p>
-                    <p>{{ $jam_kerja->nama_jam_kerja }} </p>
-                    <p style="display: flex; justify-content:space-between">
-                    <span>{{ date('H:i', strtotime($jam_kerja->jam_masuk)) }} - {{ date('H:i', strtotime($jam_kerja->jam_pulang)) }}</span>
-                    </p>
-                   
-                    <span id="face-verification-text"></span>
-                </div> -->
+                
                
                <div id="listcabang" style="display: none;">
                     <div class="select-wrapper">
