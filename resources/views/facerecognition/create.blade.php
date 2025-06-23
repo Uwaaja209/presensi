@@ -1,4 +1,5 @@
 <style>
+    /* ... (semua style Anda yang lain tetap sama) ... */
     .webcam-container {
         position: relative;
         width: 100%;
@@ -12,6 +13,16 @@
         border-radius: 10px;
         overflow: hidden;
     }
+
+    /* ======================================================= */
+    /* PERBAIKAN 1: Tambahkan CSS ini untuk membalik video      */
+    /* ======================================================= */
+    .webcam-capture video {
+        transform: scaleX(-1);
+        -webkit-transform: scaleX(-1); /* Untuk support browser lama */
+    }
+    /* ======================================================= */
+
 
     .face-guide {
         position: absolute;
@@ -37,6 +48,7 @@
         border-radius: 10px;
     }
 
+    /* ... (semua style Anda yang lain tetap sama) ... */
     .guide-text {
         position: absolute;
         bottom: 20px;
@@ -134,6 +146,7 @@
         top: 50%;
         transform: translate(-50%, -50%);
     }
+
 </style>
 
 <div class="container">
@@ -174,7 +187,7 @@
 </div>
 
 <script>
-    // Fungsi untuk memuat face-api.js
+    // ... (Fungsi loadFaceApiScript, loadFaceApiModels, startVideo, capturePhoto tetap sama) ...
     function loadFaceApiScript() {
         return new Promise((resolve, reject) => {
             if (typeof faceapi !== 'undefined') {
@@ -190,7 +203,6 @@
         });
     }
 
-    // Fungsi untuk memuat model face-api
     async function loadFaceApiModels() {
         try {
             await Promise.all([
@@ -206,7 +218,6 @@
         }
     }
 
-    // Fungsi untuk memulai video
     function startVideo() {
         Webcam.set({
             height: 480,
@@ -231,47 +242,6 @@
         console.log('Webcam started successfully');
     }
 
-    // Fungsi untuk mengupdate panduan posisi
-    function updatePositionGuide(box, centerX, centerY) {
-        const arrows = {
-            left: document.querySelector('.arrow-left'),
-            right: document.querySelector('.arrow-right'),
-            up: document.querySelector('.arrow-up'),
-            down: document.querySelector('.arrow-down'),
-            zoom: document.querySelector('.arrow-zoom')
-        };
-
-        // Reset semua arrow
-        Object.values(arrows).forEach(arrow => {
-            arrow.style.opacity = '0';
-        });
-
-        const faceCenterX = box.x + box.width / 2;
-        const faceCenterY = box.y + box.height / 2;
-
-        // Tentukan arrow mana yang harus ditampilkan
-        if (Math.abs(faceCenterX - centerX) > 50) {
-            if (faceCenterX < centerX) {
-                arrows.right.style.opacity = '1';
-            } else {
-                arrows.left.style.opacity = '1';
-            }
-        }
-
-        if (Math.abs(faceCenterY - centerY) > 50) {
-            if (faceCenterY < centerY) {
-                arrows.down.style.opacity = '1';
-            } else {
-                arrows.up.style.opacity = '1';
-            }
-        }
-
-        if (box.width < 200 || box.width > 300) {
-            arrows.zoom.style.opacity = '1';
-        }
-    }
-
-    // Fungsi untuk mengambil foto
     function capturePhoto() {
         if (isProcessing || !isFaceDetected) return;
 
@@ -323,6 +293,49 @@
                 });
             }
         });
+    }
+
+    // Fungsi untuk mengupdate panduan posisi
+    function updatePositionGuide(box, centerX, centerY) {
+        const arrows = {
+            left: document.querySelector('.arrow-left'),
+            right: document.querySelector('.arrow-right'),
+            up: document.querySelector('.arrow-up'),
+            down: document.querySelector('.arrow-down'),
+            zoom: document.querySelector('.arrow-zoom')
+        };
+
+        // Reset semua arrow
+        Object.values(arrows).forEach(arrow => {
+            arrow.style.opacity = '0';
+        });
+
+        const faceCenterX = box.x + box.width / 2;
+        const faceCenterY = box.y + box.height / 2;
+
+        if (Math.abs(faceCenterX - centerX) > 50) {
+            // =======================================================
+            // PERBAIKAN 2.1: Logika panah dibalik
+            // Jika wajah di kiri (data mentah) -> tampilkan panah ke kiri (karena di layar ada di kanan)
+            // =======================================================
+            if (faceCenterX < centerX) {
+                arrows.left.style.opacity = '1';
+            } else {
+                arrows.right.style.opacity = '1';
+            }
+        }
+
+        if (Math.abs(faceCenterY - centerY) > 50) {
+            if (faceCenterY < centerY) {
+                arrows.down.style.opacity = '1';
+            } else {
+                arrows.up.style.opacity = '1';
+            }
+        }
+
+        if (box.width < 200 || box.width > 300) {
+            arrows.zoom.style.opacity = '1';
+        }
     }
 
     // Fungsi untuk mendeteksi wajah
@@ -385,14 +398,17 @@
                     statusIndicator.classList.remove('ready');
                     btnAmbilfoto.disabled = true;
 
-                    // Tentukan pesan panduan berdasarkan posisi
+                    // =======================================================
+                    // PERBAIKAN 2.2: Pesan panduan horizontal dibalik
+                    // =======================================================
                     let guideMessage = 'Posisikan wajah Anda di dalam kotak panduan';
                     if (box.width < 200) {
                         guideMessage = 'Mendekatlah ke kamera';
                     } else if (box.width > 300) {
                         guideMessage = 'Menjauhlah dari kamera';
                     } else if (Math.abs(faceCenterX - centerX) > 50) {
-                        guideMessage = faceCenterX < centerX ? 'Geser ke kanan' : 'Geser ke kiri';
+                        // Jika wajah di kiri (data mentah), artinya di layar ada di kanan -> suruh geser ke KIRI
+                        guideMessage = faceCenterX < centerX ? 'Geser ke kiri' : 'Geser ke kanan';
                     } else if (Math.abs(faceCenterY - centerY) > 50) {
                         guideMessage = faceCenterY < centerY ? 'Geser ke bawah' : 'Geser ke atas';
                     }
@@ -413,13 +429,12 @@
             }
         } catch (error) {
             console.error('Error detecting face:', error);
-            // Tampilkan pesan error yang lebih informatif
             const guideText = document.querySelector('.guide-text');
             guideText.textContent = 'Terjadi kesalahan dalam deteksi wajah';
         }
     }
 
-    // Inisialisasi variabel global
+    // ... (Inisialisasi variabel global & fungsi initializeFaceRecognition tetap sama) ...
     let isFaceDetected = false;
     let isProcessing = false;
     let autoCaptureTimeout = null;
@@ -429,23 +444,13 @@
     const MIN_CAPTURE_INTERVAL = 2000;
     let isModelsLoaded = false;
 
-    // Inisialisasi face recognition
     async function initializeFaceRecognition() {
         try {
-            // Muat face-api.js
             await loadFaceApiScript();
-
-            // Muat model face-api
             isModelsLoaded = await loadFaceApiModels();
-
             if (isModelsLoaded) {
-                // Mulai video
                 startVideo();
-
-                // Jalankan deteksi wajah setiap 50ms
                 setInterval(detectFace, 50);
-
-                // Event listener untuk tombol ambil foto
                 $("#btnAmbilfoto").click(function() {
                     capturePhoto();
                 });
@@ -468,6 +473,5 @@
         }
     }
 
-    // Jalankan inisialisasi saat modal dibuka
     initializeFaceRecognition();
 </script>
