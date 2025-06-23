@@ -239,7 +239,8 @@ class PresensiController extends Controller
         $file = $folderPath . $fileName;
 
         $jam_presensi = $tanggal_sekarang . " " . $jam_sekarang;
-        $batas_jam_absen = $generalsetting->batas_jam_absen * 60;
+        // $batas_jam_absen = $generalsetting->batas_jam_absen * 60;
+        $batas_jam_absen = ($generalsetting->batas_jam_absen * (int)$jam_kerja->total_jam)/2*60;
         $jam_masuk = $tanggal_presensi . " " . date('H:i:s', strtotime($jam_kerja->jam_masuk));
         $jam_mulai_masuk = date('Y-m-d H:i:s', strtotime('-' . $batas_jam_absen . ' minutes', strtotime($jam_masuk)));
         $jam_akhir_masuk =  date('Y-m-d H:i:s', strtotime('+' . $batas_jam_absen . ' minutes', strtotime($jam_masuk)));
@@ -261,7 +262,13 @@ class PresensiController extends Controller
                 return response()->json(['status' => false, 'message' => 'Maaf Belum Waktunya Absen Masuk, Waktu Absen Dimulai Pukul ' . formatIndo3($jam_mulai_masuk), 'notifikasi' => 'notifikasi_mulaiabsen'], 400);
             }
             if ($jam_presensi > $jam_akhir_masuk && $generalsetting->batasi_absen == 1) {
-                return response()->json(['status' => false, 'message' => 'Maaf Waktu Absen Masuk Sudah Habis ', 'notifikasi' => 'notifikasi_akhirabsen'], 400);
+                // return response()->json(['status' => false, 'message' => 'Maaf Waktu Absen Masuk Sudah Habis. ', 'notifikasi' => 'notifikasi_akhirabsen'], 400);
+             return response()->json([
+                    'status' => false,
+                    'message' => 'Maaf Waktu Absen Masuk Sudah Habis ' . $batas_jam_absen,
+                    'notifikasi' => 'notifikasi_akhirabsen'
+                ], 400);
+            
             }
 
             try {
