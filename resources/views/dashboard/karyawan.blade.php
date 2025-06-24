@@ -124,8 +124,11 @@
 
         }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <div id="header-section">
-        <div id="section-logout">
+        <!-- <div id="section-logout">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <a href="#" class="logout-btn"
@@ -134,7 +137,8 @@
                     <ion-icon name="exit-outline"></ion-icon>
                 </a>
             </form>
-        </div>
+        </div> -->
+        
         <div id="section-user">
             <div id="user-info">
                 <h3 id="user-name">{{ $karyawan->nama_karyawan }}👋</h3>
@@ -142,25 +146,59 @@
                 <span id="user-role">({{ $karyawan->nama_dept }})</span>
 
             </div>
-            <a href="{{ route('profile.index') }}">
-                @if (!empty($karyawan->foto))
-                    @if (Storage::disk('public')->exists('/karyawan/' . $karyawan->foto))
-                        <div
-                            style="width: 80px; height: 80px; background-image: url({{ getfotoKaryawan($karyawan->foto) }}); background-size: cover; background-position: center; border-radius: 50%;">
+           <div class="dropdown">
+    {{-- Tombol Dropdown --}}
+    <a href="#" class="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        {{-- Logika untuk menampilkan foto profil --}}
+        @if (!empty($karyawan->foto))
+            @if (Storage::disk('public')->exists('/karyawan/' . $karyawan->foto))
+                <div
+                    style="width: 80px; height: 80px; background-image: url({{ getfotoKaryawan($karyawan->foto) }}); background-size: cover; background-position: center; border-radius: 50%;">
+                </div>
+            @else
+                {{-- Foto default jika file tidak ditemukan --}}
+                <div class="avatar avatar-xs me-2">
+                    <img src="{{ asset('assets/template/img/sample/avatar/avatar1.jpg') }}" alt="avatar" class="imaged w64 rounded">
+                </div>
+            @endif
+        @else
+            {{-- Foto default jika data karyawan tidak punya foto --}}
+            <div class="avatar avatar-xs me-2">
+                <img src="{{ asset('assets/template/img/sample/avatar/avatar1.jpg') }}" alt="avatar" class="imaged w64 rounded">
+            </div>
+        @endif
+    </a>
 
-
-                        </div>
-                    @else
-                        <div class="avatar avatar-xs me-2">
-                            <img src="{{ asset('assets/template/img/sample/avatar/avatar1.jpg') }}" alt="avatar" class="imaged w64 rounded">
-                        </div>
-                    @endif
-                @else
-                    <div class="avatar avatar-xs me-2">
-                        <img src="{{ asset('assets/template/img/sample/avatar/avatar1.jpg') }}" alt="avatar" class="imaged w64 rounded">
-                    </div>
-                @endif
+    {{-- Menu Dropdown --}}
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+            <a class="dropdown-item" href="{{ route('profile.index') }}">
+                <ion-icon name="person-outline"></ion-icon>
+                Profil Saya
             </a>
+        </li>
+
+<li>
+    <a class="dropdown-item item {{ request()->is('/users/:id/editpassword') ? 'active' : '' }}" href="{{ route('users.editpassword', Crypt::encrypt(Auth::user()->id)) }}">
+                <ion-icon name="settings-outline"></ion-icon>
+                Password
+            </a>
+    
+    </li>
+
+        <li>
+            {{-- Form untuk Logout --}}
+            <form method="POST" action="{{ route('logout') }}" id="logout-form">
+                @csrf
+                <a class="dropdown-item" href="#" 
+                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <ion-icon name="exit-outline"></ion-icon>
+                    Logout
+                </a>
+            </form>
+        </li>
+    </ul>
+</div>
         </div>
         <div id="section-jam " class="text-center mt-1 mb-2">
             <h2 id="jam" class="mb-2" style="text-shadow: 0px 0px 2px #04ab86b7; line-height: 1rem"></h2>
