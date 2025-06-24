@@ -284,7 +284,7 @@
         </div>
         <div class="row mt-2">
             <div class="col-3">
-                <a href="{{ route('karyawan.idcard', Crypt::encrypt($karyawan->nik)) }}">
+                <!-- <a href="{{ route('karyawan.idcard', Crypt::encrypt($karyawan->nik)) }}">
                     <div class="card">
                         <div class="card-body text-center" style="padding: 5px 5px !important; line-height:0.8rem">
                             <img src="{{ asset('assets/template/img/3d/card.webp') }}" alt="" style="width: 50px" class="mb-0">
@@ -294,7 +294,7 @@
                             </span>
                         </div>
                     </div>
-                </a>
+                </a> -->
             </div>
         </div>
     </div>
@@ -306,11 +306,11 @@
                         30 Hari terakhir
                     </a>
                 </li>
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link" data-toggle="tab" href="#profile" role="tab">
                         Lembur
                     </a>
-                </li>
+                </li> -->
             </ul>
         </div>
         <div class="tab-content mt-2" style="margin-bottom:100px;">
