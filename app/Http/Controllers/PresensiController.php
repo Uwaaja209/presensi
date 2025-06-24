@@ -262,12 +262,12 @@ class PresensiController extends Controller
                 return response()->json(['status' => false, 'message' => 'Maaf Belum Waktunya Absen Masuk, Waktu Absen Dimulai Pukul ' . formatIndo3($jam_mulai_masuk), 'notifikasi' => 'notifikasi_mulaiabsen'], 400);
             }
             if ($jam_presensi > $jam_akhir_masuk && $generalsetting->batasi_absen == 1) {
-                return response()->json(['status' => false, 'message' => 'Maaf Waktu Absen Masuk Sudah Habis. ', 'notifikasi' => 'notifikasi_akhirabsen'], 400);
-            //  return response()->json([
-            //         'status' => false,
-            //         'message' => 'Maaf Waktu Absen Masuk Sudah Habis ' . $batas_jam_absen,
-            //         'notifikasi' => 'notifikasi_akhirabsen'
-            //     ], 400);
+                // return response()->json(['status' => false, 'message' => 'Maaf Waktu Absen Masuk Sudah Habis. ', 'notifikasi' => 'notifikasi_akhirabsen'], 400);
+             return response()->json([
+                    'status' => false,
+                    'message' => 'Maaf Waktu Absen Masuk Sudah Habis ' . $generalsetting->batas_jam_absen,
+                    'notifikasi' => 'notifikasi_akhirabsen'
+                ], 400);
             
             }
 
