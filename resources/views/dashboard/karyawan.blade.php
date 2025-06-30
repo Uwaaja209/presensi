@@ -141,7 +141,7 @@
         
         <div id="section-user">
             <div id="user-info">
-                <h3 id="user-name">{{ $karyawan->nama_karyawan }}👋</h3>
+                <h3 id="user-name">{{ $karyawan->nama_karyawan }}</h3>
                 <span id="user-role">{{ $karyawan->nama_jabatan }}</span>
                 <span id="user-role">({{ $karyawan->nama_dept }})</span>
 
@@ -201,7 +201,7 @@
 </div>
         </div>
         <div id="section-jam " class="text-center mt-1 mb-2">
-            <h2 id="jam" class="mb-2" style="text-shadow: 0px 0px 2px #04ab86b7; line-height: 1rem"></h2>
+            <h2 id="jam" class="mb-2" style="text-shadow: 0px 0px 2px #04ab86b7; "></h2>
             <span class="">Hari ini : {{ getNamaHari(date('D')) }}, {{ DateToIndo(date('Y-m-d')) }}</span>
         </div>
         <div id="section-presensi">
