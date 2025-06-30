@@ -9,6 +9,7 @@
     <title>Sign in & Sign up Form</title>
     <link rel="stylesheet" href="{{ asset('assets/login/css/style.css') }}" />
     <style>
+        
         .alert {
             padding: 15px;
             margin-bottom: 20px;
@@ -135,9 +136,10 @@
                     </div>
                 </div>
 
-                <div class="carousel">
+                <!-- <div class="carousel">
                     {{-- Carousel Anda tidak perlu diubah --}}
-                </div>
+                </div> -->
+                
             </div>
         </div>
     </main>
