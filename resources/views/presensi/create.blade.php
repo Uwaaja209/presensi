@@ -1,3 +1,10 @@
+Tentu, ini adalah skrip lengkap dari file Blade Anda, dengan perbaikan untuk masalah path gambar yang sudah diterapkan.
+
+Anda bisa langsung mengganti seluruh isi file lama Anda dengan kode di bawah ini. Perubahan utama ada di dalam blok `@push('myscript')` pada fungsi `getLabeledFaceDescriptions`.
+
+-----
+
+```php
 @extends('layouts.mobile.app')
 @section('content')
     <style>
@@ -229,20 +236,80 @@
                     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
                 ]).then(() => startFaceRecognition()).catch(err => loadingIndicator.html(`<div class="text-danger">Gagal memuat model.</div>`));
 
+                /**
+                 * Fungsi untuk mengubah format label/NIK antara "20.12.144" dan "20121446".
+                 * @param {string} originalLabel - Label asli, cth: "20.12.144-nama" atau "20121446-nama"
+                 * @returns {string} Label dengan format alternatif.
+                 */
+                function getAlternativeLabel(originalLabel) {
+                    const parts = originalLabel.split('-');
+                    if (parts.length < 2) return originalLabel; // Format tidak valid, kembalikan aslinya
+
+                    let nikPart = parts[0];
+                    const namePart = parts.slice(1).join('-');
+
+                    // Jika formatnya "20.12.144", ubah ke "20121446"
+                    if (nikPart.includes('.')) {
+                        const newNik = nikPart.replace(/\./g, '') + '6';
+                        return `${newNik}-${namePart}`;
+                    } 
+                    // Jika formatnya "20121446", ubah ke "20.12.144"
+                    else if (nikPart.endsWith('6') && nikPart.length > 1) {
+                        let baseNik = nikPart.slice(0, -1); // Hapus angka 6 di akhir
+                        if (baseNik.length >= 7) {
+                            const newNik = `${baseNik.substring(0, 2)}.${baseNik.substring(2, 4)}.${baseNik.substring(4, 7)}`;
+                            return `${newNik}-${namePart}`;
+                        }
+                    }
+                    
+                    // Jika tidak cocok dengan aturan mana pun, kembalikan label asli
+                    return originalLabel;
+                }
+
                 async function getLabeledFaceDescriptions() {
                     const labels = ["{{ $karyawan->nik }}-{{ getNamaDepan(strtolower($karyawan->nama_karyawan)) }}"];
+                    
                     return Promise.all(
                         labels.map(async label => {
                             const descriptions = [];
                             const timestamp = new Date().getTime();
                             const response = await fetch(`/facerecognition/getwajah?t=${timestamp}`);
                             const data = await response.json();
+
                             for (const faceData of data) {
+                                const primaryLabel = label;
+                                const alternativeLabel = getAlternativeLabel(primaryLabel);
+
+                                const primaryPath = `/storage/uploads/facerecognition/${primaryLabel}/${faceData.wajah}?v=${timestamp}`;
+                                const alternativePath = `/storage/uploads/facerecognition/${alternativeLabel}/${faceData.wajah}?v=${timestamp}`;
+                                
+                                let img;
+                                
                                 try {
-                                    const img = await faceapi.fetchImage(`/storage/uploads/facerecognition/${label}/${faceData.wajah}?t=${timestamp}`);
-                                    const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-                                    if (detections) descriptions.push(detections.descriptor);
-                                } catch (e) { console.error(`Gagal load gambar: ${e}`); }
+                                    // 1. Coba muat gambar dari path utama
+                                    img = await faceapi.fetchImage(primaryPath);
+                                } catch (e) {
+                                    console.warn(`Gagal di path utama: ${primaryPath}. Mencoba path alternatif...`);
+                                    try {
+                                        // 2. Jika gagal, coba muat dari path alternatif
+                                        img = await faceapi.fetchImage(alternativePath);
+                                    } catch (e2) {
+                                        console.error(`GAGAL TOTAL: Tidak bisa memuat gambar dari path utama maupun alternatif.`, e2);
+                                        continue; // Lanjut ke gambar berikutnya jika ada
+                                    }
+                                }
+                                
+                                // Jika gambar berhasil dimuat (dari path manapun)
+                                if (img) {
+                                    try {
+                                        const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                                        if (detections) {
+                                            descriptions.push(detections.descriptor);
+                                        }
+                                    } catch (detectionError) {
+                                        console.error('Error saat deteksi wajah pada gambar:', detectionError);
+                                    }
+                                }
                             }
                             return new faceapi.LabeledFaceDescriptors(label, descriptions);
                         })
