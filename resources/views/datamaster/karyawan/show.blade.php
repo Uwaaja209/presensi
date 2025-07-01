@@ -225,13 +225,48 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            @foreach ($karyawan_wajah as $d)
-                                @php
-                                    $folder = $karyawan->nik . '-' . getNamaDepan(strtolower($karyawan->nama_karyawan));
-                                    $url = url('/storage/uploads/facerecognition/' . $folder . '/' . $d->wajah);
-                                    $timestamp = time();
-                                    $urlWithTimestamp = $url . '?v=' . $timestamp;
-                                @endphp
+                        
+@foreach ($karyawan_wajah as $d)
+    @php
+        $nik_asli = $karyawan->nik;
+        $nama_depan = getNamaDepan(strtolower($karyawan->nama_karyawan));
+
+        // 1. Siapkan dua kemungkinan nama folder
+        $folder_satu = '';
+        $folder_dua = '';
+
+        if (strpos($nik_asli, '.') !== false) {
+            // Format asli: 20.12.144
+            $folder_satu = $nik_asli . '-' . $nama_depan;
+            // Format alternatif: 20121446
+            $folder_dua = str_replace('.', '', $nik_asli) . '6-' . $nama_depan;
+        } else {
+            // Format asli: 20121446
+            $folder_satu = $nik_asli . '-' . $nama_depan;
+            // Format alternatif: 20.12.144
+            $base_nik = substr($nik_asli, 0, -1);
+            if (strlen($base_nik) >= 7) {
+                $nik_alternatif = substr($base_nik, 0, 2) . '.' . substr($base_nik, 2, 2) . '.' . substr($base_nik, 4, 3);
+                $folder_dua = $nik_alternatif . '-' . $nama_depan;
+            }
+        }
+        
+        // 2. Cek path mana yang benar dan buat URL yang valid
+        $base_path = 'uploads/facerecognition/';
+        $final_url = asset('assets/img/placeholder.png'); // Gambar default jika tidak ditemukan
+
+        // Cek keberadaan file di folder pertama
+        if ($folder_satu && Storage::disk('public')->exists($base_path . $folder_satu . '/' . $d->wajah)) {
+            $final_url = Storage::url($base_path . $folder_satu . '/' . $d->wajah);
+        }
+        // Jika tidak ada, cek di folder kedua
+        elseif ($folder_dua && Storage::disk('public')->exists($base_path . $folder_dua . '/' . $d->wajah)) {
+            $final_url = Storage::url($base_path . $folder_dua . '/' . $d->wajah);
+        }
+
+        // 3. Tambahkan timestamp untuk menghindari masalah cache
+        $urlWithTimestamp = $final_url . '?v=' . time();
+    @endphp
                                 <div class="col-6 col-md-4 col-lg-3">
                                     <div class="card h-100">
                                         <div class="position-relative">
